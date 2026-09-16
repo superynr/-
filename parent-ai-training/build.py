@@ -11,7 +11,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 def main():
     prs = new_deck()
     fns = ([getattr(slides_a, f"s{i:02d}") for i in range(1, 11)] +
-           [slides_b.s11, slides_b.s12, slides_b.s13, slides_b.s13a] +
+           [slides_b.s11, slides_b.s12, slides_b.s13, slides_b.s13a, slides_b.s14a] +
            [getattr(slides_b, f"s{i:02d}") for i in range(14, 21)] +
            [getattr(slides_c, f"s{i:02d}") for i in range(21, 31)])
     for fn in fns:

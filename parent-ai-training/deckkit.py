@@ -209,7 +209,7 @@ def title(slide, text, kicker=None, sub=None, top=0.62):
     return y
 
 
-def footer(slide, page, source=None, total=31, link=None):
+def footer(slide, page, source=None, total=32, link=None):
     """하단 구분선 + 출처(링크가 있으면 눌러서 원문으로 이동) + 쪽번호."""
     rect(slide, 0, H - 0.52, W, 0.012, fill="line")
     if source:
