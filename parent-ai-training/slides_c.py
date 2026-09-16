@@ -8,20 +8,25 @@ from pptx.enum.text import PP_ALIGN
 
 def s21(prs):
     s = blank(prs)
-    y = title(s, "좋은 질문은 네 가지를 담습니다", kicker="질문의 구조",
-              sub="이 네 가지가 들어가면 돌아오는 답이 확 달라집니다.")
+    y = title(s, "AI 프롬프트 공식, 네 칸만 채우면 됩니다", kicker="프롬프트 공식",
+              sub="외울 것은 네 가지뿐입니다. 아이가 이 형식만 익히면 돌아오는 답이 달라집니다.")
     items = [("내 수준", "“초등학교 4학년이야”"), ("내 시도", "“분모끼리 더했어”"),
              ("필요한 도움", "“어디가 틀렸는지 궁금해”"), ("답변 방식", "“정답 말고 질문으로 해 줘”")]
-    cw = (CW - 3 * 0.3) / 4
+    gap = 0.38
+    cw = (CW - 3 * gap) / 4
     for i, (h, ex) in enumerate(items):
-        x = ML + i * (cw + 0.3)
+        x = ML + i * (cw + gap)
         rrect(s, x, y + 0.28, cw, 1.88, fill="tintblue", line=None, radius=0.1)
-        numbadge(s, x + 0.28, y + 0.5, 0.38, i + 1, fill="blue", size=13)
-        txt(s, x + 0.28, y + 1.0, cw - 0.56, 0.32, h, size=16, bold=True, color="ink")
-        txt(s, x + 0.28, y + 1.34, cw - 0.56, 0.7, ex, size=12, color="blue", spacing=1.25)
+        numbadge(s, x + 0.26, y + 0.5, 0.38, i + 1, fill="blue", size=13)
+        txt(s, x + 0.26, y + 1.0, cw - 0.52, 0.32, h, size=16, bold=True, color="ink")
+        txt(s, x + 0.26, y + 1.34, cw - 0.52, 0.7, ex, size=12, color="blue", spacing=1.25)
+        if i < 3:
+            txt(s, x + cw, y + 1.04, gap, 0.36, "+", size=20, bold=True,
+                color="mute", align=PP_ALIGN.CENTER)
     rrect(s, ML, y + 2.36, CW, 2.2, fill="tint", line="line", radius=0.1)
-    txt(s, ML + 0.4, y + 2.56, 5.0, 0.3, "네 가지를 합치면 이런 질문이 됩니다", size=13,
-        bold=True, color="teal")
+    rich(s, ML + 0.4, y + 2.56, 7.0, 0.3,
+         [[("=  ", "blue", True), ("네 칸을 이어 붙이면 이런 한 문장이 됩니다", "teal", True)]],
+         size=13)
     rect(s, ML + 0.4, y + 2.94, 0.05, 1.4, fill="blue")
     txt(s, ML + 0.7, y + 2.94, CW - 1.3, 1.45,
         ["나는 초등학교 4학년이야. 분모가 다른 분수의 덧셈을 공부하고 있어.",
@@ -33,7 +38,7 @@ def s21(prs):
              "아이가 형식을 금방 익힙니다.\n"
              "네 번째(답변 방식)가 핵심입니다. 8장 연구에서 효과를 만든 것이 바로 이 부분, "
              "즉 ‘정답 대신 힌트’ 설정이었습니다.\n"
-             "주의: 좋은 질문은 답을 유용하게 만들지만 정확성을 보장하지는 않습니다. 이 점은 23장에서 이어집니다.")
+             "주의: 좋은 공식이 답을 유용하게 만들어 주지만 정확성까지 보장하지는 않습니다. 28장에서 이어집니다.")
     return s
 
 
