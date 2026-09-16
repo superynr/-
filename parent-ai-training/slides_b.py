@@ -18,6 +18,8 @@ URL_WRTN = "https://help.wrtn.ai/account_14"
 URL_TOCTOC = "https://www.toctocmath.kr/"
 URL_PENGTALK = "https://about.ebs.co.kr/kor/elearning/grade?tabVal=aipengtalk"
 URL_PRIVACY = "https://www.privacy.go.kr/front/contents/cntntsView.do?contsNo=94"
+URL_SEN = ("https://buseo.sen.go.kr/component/file/ND_fileDownload.do?q_fileSn=2082299"
+           "&q_fileId=50df45ef-69f0-48a3-8855-2ed6d9c7ce39")
 SRC_TOS = ("출처: OpenAI 고객센터·이용약관, Google Gemini/Family Link 고객센터 (2026년 9월 확인 기준) · "
            "개인정보 보호법 제22조의2(아동의 개인정보 보호)")
 
@@ -89,61 +91,55 @@ def s12(prs):
 
 def s13(prs):
     s = blank(prs)
-    y = title(s, "부모 휴대폰, 어디까지 빌려줄까요?", kicker="첫 번째 관문 · 이용 조건",
-              sub="빌려주기 전에, 그 서비스가 정해 둔 조건부터 보셔야 합니다.")
-    cw = (CW - 0.4) / 2
-    card(s, ML, y + 0.15, cw, 1.88, "보호자와 함께 쓰기",
-         ["· 무엇을 알아볼지 먼저 정합니다",
-          "· 어떤 정보를 넣을지 함께 봅니다",
-          "· 언제 끝낼지 미리 약속합니다"],
-         fill="tintblue", line=None, accent="blue", head_size=17.5, body_size=13)
-    card(s, ML + cw + 0.4, y + 0.15, cw, 1.88, "아이 혼자 쓰기",
-         ["· 10장의 준비도 네 가지를 갖췄을 때",
-          "· 사용 목적과 시간을 정해 둔 상태에서",
-          "· 무엇을 물었는지 나중에 이야기하기로"],
-         fill="tint", line="line", accent="teal", head_size=17.5, body_size=13)
-
-    ty = y + 2.16
-    rrect(s, ML, ty, CW, 1.48, fill="tint", line="line", radius=0.08)
+    y = title(s, "초등학생에게 ‘본인 계정’은 존재하지 않습니다", kicker="첫 번째 관문 · 계정",
+              sub="계정을 빌려주는 게 아니라, 부모 계정을 함께 쓴다고 생각해 주세요.")
+    ty = y + 0.18
+    rrect(s, ML, ty, CW, 3.3, fill="white", line="line", radius=0.06)
     rect(s, ML, ty, CW, 0.44, fill="tintteal")
-    cols = [0.35, 2.85, 6.35]
-    heads = ["서비스", "연령·동의 조건", "보호자가 할 수 있는 것"]
-    for cx, hd in zip(cols, heads):
-        txt(s, ML + cx, ty + 0.12, 3.6, 0.3, hd, size=12.5, bold=True, color="teal")
-    rows = [("ChatGPT (OpenAI)", "만 13세 미만 이용 불가.\n13~18세는 보호자 동의 필요.",
-             "(13세 이상) 자녀 계정과 연결해\n사용 금지 시간대·기능 제한, 대화 내용 열람은 불가"),
-            ("Gemini (Google)", "만 13세 미만(국내 만 14세)은\n보호자가 Family Link로 관리",
-             "Family Link에서 액세스를 켜고 끄기")]
-    for i, (a, b, c) in enumerate(rows):
-        ry = ty + 0.5 + i * 0.52
-        txt(s, ML + cols[0], ry, 2.4, 0.3, a, size=13, bold=True, color="blue",
-            link=(URL_OPENAI_PC if i == 0 else URL_GEMINI), underline=True)
-        txt(s, ML + cols[1], ry - 0.06, 3.3, 0.55, b.split("\n"), size=12, color="body", spacing=1.25)
-        txt(s, ML + cols[2], ry - 0.06, 4.9, 0.55, c.split("\n"), size=12, color="body", spacing=1.25)
-    rrect(s, ML, y + 3.78, CW, 0.92, fill="tintteal", line=None, radius=0.12)
-    rich(s, ML + 0.4, y + 3.97, CW - 0.8, 0.6,
-         [[("국내에서는 만 14세 미만 아동의 서비스 가입에 보호자 동의가 필요합니다. "
-            "초등 단계는 동반 사용이 기본입니다.", "teal", True)],
-          [("연령·계정 정책은 자주 바뀝니다. 실제로 쓰실 서비스의 공식 약관과 도움말을 확인해 주세요.",
-            "body", False)]],
-         size=13.5, spacing=1.35, space_after=3)
-    footer(s, 13, SRC_TOS, link=URL_PRIVACY)
-    notes(s, "표의 내용은 2026년 9월 확인 기준이며, 정책은 자주 바뀝니다. 연수 직전에 다시 확인하시고 "
-             "바뀐 부분이 있으면 구두로 정정해 주십시오.\n"
-             "핵심 메시지: ①일반 소비자용 서비스와 학교가 제공하는 교육용 계정은 조건이 다릅니다. "
-             "②부모 계정을 그냥 빌려주는 방식은 서비스가 정한 연령·계정 공유 조건을 벗어날 수 있습니다. "
-             "③‘보호자 동의’는 서류상 동의가 아니라 함께 쓰는 실제 습관을 뜻한다고 풀어 주십시오.\n"
-             "‘자녀 계정 연결’ 질문이 나오면: 부모 계정과 아이 본인 계정을 묶는 기능이며, "
-             "아이가 이미 자기 계정을 가지고 있어야 합니다(만 13~18세). 부모가 설정 → 자녀 보호 기능 → "
-             "가족 구성원 추가에서 전화번호나 이메일로 초대하면 아이가 링크를 눌러 수락합니다. "
-             "연결하면 사용 금지 시간대(Quiet hours), 음성 모드·이미지 생성·메모리 끄기, 민감 콘텐츠 제한을 "
-             "부모가 정할 수 있고, 연결된 동안 아이는 이 설정을 바꿀 수 없습니다.\n"
-             "다만 부모가 아이의 대화 내용을 읽을 수는 없습니다. 학부모가 가장 많이 오해하는 지점이므로 "
-             "먼저 짚어 주십시오. 감시 도구가 아니라 사용 조건을 거는 도구입니다.\n"
-             "초등학교 학부모에게는 아직 해당하지 않는 기능입니다. 13세 미만은 계정 자체를 만들 수 없으므로 "
-             "지금은 보호자 동반 사용이 기본이고, 중학교에 올라가면 쓸 수 있는 기능이라고 예고하는 정도로 "
-             "안내하십시오.\n"
-             "특정 제품을 권하거나 비교 평가하는 자리가 아님을 분명히 하고, 두 서비스는 예시로만 제시합니다.")
+    c1, w1, c2, w2 = 0.35, 5.1, 6.15, 5.15
+    txt(s, ML + c1, ty + 0.12, w1, 0.3, "기준", size=12.5, bold=True, color="teal")
+    txt(s, ML + c2, ty + 0.12, w2, 0.3, "가정에서 확인할 점", size=12.5, bold=True, color="teal")
+    rect(s, ML + 5.85, ty + 0.44, 0.012, 2.86, fill="line")
+    rows = [
+        ("ChatGPT (OpenAI)", URL_OPENAI, "약관상 만 13세 이상 (18세 미만은 보호자 동의)",
+         "초등학생 본인 명의 가입은 원칙적으로 불가"),
+        ("Gemini (Google)", URL_GEMINI, "만 13세 미만은 보호자가 Family Link로 관리",
+         "부모 계정의 Family Link 설정이 먼저"),
+        ("국내 개인정보 보호법", URL_PRIVACY, "만 14세 미만은 보호자 동의 필수",
+         "소셜 로그인도 개인정보 제3자 제공에 동의하는 것"),
+        ("서울시교육청 지침", URL_SEN, "초등은 교사 시연을 통한 간접 체험이 원칙",
+         "학교에서 쓸 때는 가정통신문 동의 절차 확인"),
+    ]
+    rh = 0.715
+    for i, (label, url, detail, check) in enumerate(rows):
+        ry = ty + 0.44 + i * rh
+        if i:
+            rect(s, ML + 0.2, ry, CW - 0.4, 0.012, fill="line")
+        txt(s, ML + c1, ry + 0.13, w1, 0.3, label, size=13.5, bold=True,
+            color="blue", link=url, underline=True)
+        txt(s, ML + c1, ry + 0.42, w1, 0.3, detail, size=12, color="body")
+        txt(s, ML + c2, ry + 0.24, w2, 0.45, check, size=13, color="ink", spacing=1.25)
+    rrect(s, ML, y + 3.72, CW, 0.82, fill="ink", line=None, radius=0.1)
+    txt(s, ML, y + 3.96, CW, 0.4,
+        "초등학생이 쓰는 모든 계정은 ‘부모 계정’이어야 합니다.",
+        size=18, bold=True, color="white", align=PP_ALIGN.CENTER)
+    footer(s, 13, "출처: 각 항목의 공식 약관·법령·교육청 지침 (2026년 9월 확인 기준) · 기준 이름을 누르면 원문으로 이동합니다")
+    notes(s, "계정 이야기는 이 한 장으로 정리됩니다. 네 줄을 차례로 읽어 주세요.\n"
+             "①ChatGPT는 약관상 만 13세 이상입니다. 초등학생은 자기 이름으로 가입할 수 없습니다. "
+             "②Gemini는 예외적으로 길이 있습니다. 보호자가 Family Link에서 자녀 계정에 접근을 "
+             "켜 주는 방식이라, 부모 설정이 먼저입니다. ③국내 개인정보 보호법상 만 14세 미만은 "
+             "보호자 동의가 필수입니다. 초등학생은 대부분 여기에 해당합니다. "
+             "‘구글로 로그인’ 같은 소셜 로그인도 개인정보를 그 서비스에 넘기는 데 동의하는 절차라는 점을 "
+             "짚어 주시면 좋겠습니다.\n"
+             "④서울시교육청 「학교급별 생성형 AI 활용 지침」은 초등학생의 경우 교사 시연을 통한 간접 "
+             "체험을 원칙으로 하고, 교사가 추가 작업으로 안정성을 확보하면 직접 사용도 가능하다고 "
+             "안내합니다. 수업이나 방과후에 활용할 때는 가정통신문 등으로 학부모 동의를 받습니다.\n"
+             "※ 이 항목은 서울시교육청 기준입니다. 다른 지역이라면 해당 시도교육청 지침을 확인해 "
+             "바꿔서 안내해 주십시오.\n"
+             "‘자녀 계정 연결’ 질문이 나오면: ChatGPT의 보호자 관리 기능은 부모 계정과 아이 본인 계정을 "
+             "묶는 것이라 만 13~18세용입니다. 초등학생은 계정 자체가 없으니 해당되지 않습니다. "
+             "그 기능도 사용 금지 시간대나 기능 제한은 걸 수 있지만 대화 내용을 읽을 수는 없습니다.\n"
+             "정리 문장을 크게 읽어 주세요. 오늘 계정 부분에서 가져갈 것은 이 한 줄입니다.")
     return s
 
 
@@ -389,7 +385,7 @@ def s13a(prs):
     """14장 — 초등학생이 실제로 쓸 수 있는 AI 비교표"""
     s = blank(prs)
     y = title(s, "우리 아이가 지금 쓸 수 있는 AI는?", kicker="서비스별 이용 연령",
-              sub="초등학생이 직접 가입할 수 있는 범용 AI 챗봇은 사실상 없습니다.")
+              sub="그렇다면 실제로 쓸 수 있는 건 무엇인지 하나씩 보겠습니다.")
     # 표 머리글
     ty = y + 0.22
     cols = [0.3, 3.0, 5.5, 7.0]
