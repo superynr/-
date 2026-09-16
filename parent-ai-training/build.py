@@ -11,10 +11,11 @@ A, B, C, D = slides_a, slides_b, slides_c, slides_d
 
 
 def order():
-    return ([getattr(A, f"s{i:02d}") for i in range(1, 11)] +
+    return ([getattr(A, f"s{i:02d}") for i in range(1, 9)] +
+            [D.d_cogdebt, A.s09, A.s10] +
             [B.s11, B.s12, B.s13, B.s13a, B.s14a, B.s14, B.s15, B.s16] +
             [D.d_paper, D.d_pisa] +
-            [B.s17, B.s18, B.s19, B.s20, C.s21] +
+            [B.s17, B.s18, D.d_homework, B.s19, B.s20, C.s21] +
             [D.d_overdep] +
             [C.s22, C.s23, C.s24, C.s25] +
             [D.d_thailand, D.d_aiforgood, D.d_nobel, D.d_bok, D.d_myth, D.d_wef] +
