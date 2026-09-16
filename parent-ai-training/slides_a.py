@@ -4,10 +4,16 @@ from deckkit import *
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 
 SRC_KPF = "출처: 한국언론진흥재단, 『2025 10대 청소년 미디어 이용 조사』(초4~고3 2,674명)"
+URL_KPF = "https://www.kpf.or.kr/front/research/consumerDetail.do?seq=600223"
+URL_PNAS = "https://www.pnas.org/doi/10.1073/pnas.2422633122"
+URL_MOE = ("https://www.moe.go.kr/boardCnts/viewRenew.do?boardID=294&boardSeq=104984"
+           "&lev=0&m=020402")
+URL_NYPI = "https://www.nypi.re.kr/repository/handle/2022.oak/6296"
 SRC_PNAS = ("출처: Bastani, H. et al. (2025). Generative AI without guardrails can harm learning: "
             "Evidence from high school mathematics. PNAS 122(26).")
 SRC_MOE = "출처: 교육부·17개 시도교육청, 「수행평가 시 인공지능(AI) 활용 관리 방안」"
-SRC_NYPI = "출처: 한국청소년정책연구원, 『청소년의 생성형 AI 이용실태 및 리터러시 증진방안 연구』(연구보고 24-기본02)"
+SRC_NYPI = ("출처: 한국청소년정책연구원, 『청소년의 생성형 AI 이용실태 및 리터러시 증진방안 연구』"
+            "(연구보고 24-기본02) · 중·고등학생 대상 조사")
 
 
 def s01(prs):
@@ -38,7 +44,7 @@ def s01(prs):
     txt(s, bx + 0.34, by + 2.21, 1.2, 0.3, "부모", size=12, bold=True, color="blue")
     txt(s, bx + 0.34, by + 2.55, bw - 0.7, 0.4, "“먼저 네 생각은 어때?”",
         size=16, bold=True, color="ink")
-    txt(s, bx, by + 3.4, bw, 0.34, "오늘 연수가 바꾸려는 한 장면입니다.",
+    txt(s, bx, by + 3.4, bw, 0.34, "오늘 바꿔 보려는 건 이 한 장면입니다.",
         size=12.5, color="mute", align=PP_ALIGN.CENTER)
     notes(s, "인사와 함께 오늘의 결론을 먼저 보여 줍니다. "
              "‘AI를 쓰게 할까 말까’가 아니라 ‘아이의 생각을 지키면서 어떻게 쓰게 할까’가 오늘의 질문임을 밝힙니다. "
@@ -64,10 +70,10 @@ def s02(prs):
     rrect(s, ML, y + 2.95, CW, 1.0, fill="tintteal", line=None, radius=0.1)
     rich(s, ML + 0.4, y + 3.18, CW - 0.8, 0.6,
          [[("우리 집만의 고민이 아닙니다. ", "body", False),
-           ("초등학생 51.2%", "teal", True),
+           ("초등 4~6학년 51.2%", "teal", True),
            ("가 최근 일주일 안에 AI를 이용했습니다. 중학생 69.8%, 고등학생 82.3%.", "body", False)]],
          size=16)
-    footer(s, 2, SRC_KPF)
+    footer(s, 2, SRC_KPF, link=URL_KPF)
     notes(s, "네 가지를 읽어 주고 손을 들게 합니다. 가장 많이 나온 항목을 기억해 두었다가 "
              "해당 구간(숙제=17~21장, 사실 확인=23~24장, 시작 나이=9~13장)에서 다시 언급하면 몰입도가 올라갑니다.\n"
              "수치 안내: 한국언론진흥재단 『2025 10대 청소년 미디어 이용 조사』, 초4~고3 2,674명 대상, "
@@ -79,7 +85,7 @@ def s02(prs):
 def s03(prs):
     s = blank(prs)
     y = title(s, "오늘 가져갈 세 가지", kicker="연수의 목표",
-              sub="90분 뒤 집에서 바로 쓸 수 있는 것만 남기겠습니다.")
+              sub="오늘은 이 세 가지만 들고 가셔도 충분합니다.")
     items = [("사용 기준", "몇 살부터,\n어디까지 허용할까", "blue", "tintblue"),
              ("숙제 원칙", "무엇이 도움이고\n무엇이 대행일까", "teal", "tintteal"),
              ("확인 습관", "이 답이 정말\n맞는지 어떻게 볼까", "blue", "tintblue")]
@@ -114,18 +120,19 @@ def s04(prs):
         color="blue", align=PP_ALIGN.CENTER)
 
     x = 7.05
-    txt(s, x, y + 0.25, CW - (x - ML), 0.4,
-        "맞힌 것은 AI이고, 배우는 것은 아이입니다.", size=19, bold=True, color="ink")
+    txt(s, x, y + 0.25, CW - (x - ML), 0.8,
+        "문제를 푼 건 AI입니다.\n아이는 그걸 지켜봤을 뿐입니다.", size=19, bold=True,
+        color="ink", spacing=1.3)
     cw = (CW - (x - ML) - 0.3) / 2
-    card(s, x, y + 0.92, cw, 2.0, "답을 얻기",
+    card(s, x, y + 1.15, cw, 1.95, "답을 얻기",
          ["· 과제가 끝난다", "· 오늘 점수는 오른다", "· 다음에 또 막힌다"],
          fill="tint", line="line", head_size=16, body_size=13.5)
-    card(s, x + cw + 0.3, y + 0.92, cw, 2.0, "스스로 설명하기",
+    card(s, x + cw + 0.3, y + 1.15, cw, 1.95, "스스로 설명하기",
          ["· 시간이 걸린다", "· 오늘은 더디다", "· 다음에 혼자 푼다"],
          fill="tintblue", line=None, accent="blue", head_size=16, body_size=13.5)
-    rrect(s, x, y + 3.1, CW - (x - ML), 0.92, fill="tintteal", line=None, radius=0.12)
-    txt(s, x + 0.3, y + 3.32, CW - (x - ML) - 0.6, 0.6,
-        "확인하는 방법은 하나입니다. 화면을 닫고 아이에게 설명하게 해 보세요.",
+    rrect(s, x, y + 3.25, CW - (x - ML), 0.92, fill="tintteal", line=None, radius=0.12)
+    txt(s, x + 0.3, y + 3.47, CW - (x - ML) - 0.6, 0.6,
+        "확인은 간단합니다. 화면을 닫고 아이에게 설명해 보라고 해 보세요.",
         size=14, bold=True, color="teal", spacing=1.3)
     footer(s, 4)
     notes(s, "정답은 X입니다. 투표 결과를 먼저 세어 보고 시작하면 다음 장의 연구 결과가 훨씬 잘 들립니다.\n"
@@ -137,7 +144,7 @@ def s04(prs):
 def s05(prs):
     s = blank(prs)
     y = title(s, "AI는 어떻게 그럴듯한 답을 만들까요?",
-              kicker="원리 이해", sub="원리를 알면 어디를 확인해야 하는지가 보입니다.")
+              kicker="원리 이해", sub="복잡한 기술은 아닙니다. 알아 두면 어디를 확인해야 할지 감이 옵니다.")
     steps = [("질문을 입력합니다", "아이가 쓴 문장이\n그대로 들어갑니다"),
              ("이어질 말을 예측합니다", "학습한 방대한 글에서\n가장 그럴듯한 말을 고릅니다"),
              ("문장으로 만들어 냅니다", "사실 여부를 확인한 것이\n아니라 문장을 완성한 것입니다")]
@@ -155,8 +162,8 @@ def s05(prs):
     rrect(s, ML, y + 2.62, CW, 1.38, fill="tintteal", line=None, radius=0.1)
     rich(s, ML + 0.4, y + 2.84, CW - 0.8, 1.0,
          [[("그래서 AI는 ", "body", False), ("모르면 ‘모른다’고 하기보다 그럴듯하게 채웁니다.", "teal", True)],
-          [("검색으로 최신 자료를 함께 찾는지, 도구를 연결해 계산하는지는 서비스마다 다릅니다. "
-            "쓰는 서비스가 무엇을 하는지부터 확인해 주세요.", "body", False)]],
+          [("검색으로 최신 자료까지 찾아 주는지, 계산은 따로 도구를 쓰는지는 서비스마다 다릅니다. "
+            "우리 아이가 쓰는 게 어느 쪽인지부터 보시면 좋겠습니다.", "body", False)]],
          size=14.5, spacing=1.35, space_after=5)
     footer(s, 5)
     notes(s, "비유: ‘엄청나게 많은 글을 읽고 다음에 올 말을 아주 잘 맞히는 프로그램’. "
@@ -189,7 +196,7 @@ def s06(prs):
         size=14.5, color="body")
     rrect(s, ML, y + 3.75, CW, 0.78, fill="tintteal", line=None, radius=0.12)
     txt(s, ML + 0.4, y + 3.97, CW - 0.8, 0.4,
-        "갈림길을 정하는 것은 AI의 성능이 아니라 ‘무엇을 요청했는가’입니다.",
+        "같은 AI, 같은 문제입니다. 아이가 무엇을 요청했느냐만 달랐습니다.",
         size=16, bold=True, color="teal")
     footer(s, 6)
     notes(s, "A와 B는 같은 AI, 같은 문제입니다. 다른 것은 아이가 무엇을 요청했는가뿐입니다. "
@@ -213,7 +220,7 @@ def s07(prs):
         txt(s, x + 0.32, y + 1.78, cw - 0.64, 1.0, b.split("\n"), size=13.5, color="body", spacing=1.35)
     rrect(s, ML, y + 3.4, CW, 0.82, fill="tintblue", line=None, radius=0.12)
     txt(s, ML + 0.4, y + 3.63, CW - 0.8, 0.4,
-        "다음 장의 연구도 이 세 가지를 먼저 확인한 뒤에 읽겠습니다.",
+        "다음 장에서 볼 연구도 이 순서대로 한번 따져 보겠습니다.",
         size=15.5, bold=True, color="blue")
     footer(s, 7)
     notes(s, "학부모가 기사에서 만나는 ‘AI가 성적을 올린다 / 떨어뜨린다’ 류의 상반된 제목을 스스로 판단하도록 돕는 장입니다.\n"
@@ -252,12 +259,14 @@ def s08(prs):
     txt(s, x2 + 0.35, y + 2.85, cw - 0.7, 0.3,
         "AI를 아예 쓰지 않은 학생과 비교한 결과", size=12, color="mute")
 
-    rrect(s, ML, y + 3.45, CW, 0.9, fill="tintteal", line=None, radius=0.12)
-    rich(s, ML + 0.4, y + 3.64, CW - 0.8, 0.55,
+    rrect(s, ML, y + 3.45, CW, 1.15, fill="tintteal", line=None, radius=0.12)
+    rich(s, ML + 0.4, y + 3.64, CW - 0.8, 0.8,
          [[("차이를 만든 것은 설정이었습니다. ", "body", False),
            ("정답을 바로 주지 않고 교사가 설계한 힌트를 주도록 했더니 부정적 효과가 대부분 사라졌습니다.",
-            "teal", True)]], size=15)
-    footer(s, 8, SRC_PNAS)
+            "teal", True)],
+          [("고등학생 대상 수학 실험이므로 초등학생에게 그대로 적용할 수는 없습니다.", "body", False)]],
+         size=14.5, spacing=1.35, space_after=4)
+    footer(s, 8, SRC_PNAS, link=URL_PNAS)
     notes(s, "이 장은 오늘 연수의 근거 중심입니다. 천천히 읽어 주십시오.\n"
              "연구 개요: 튀르키예의 한 고등학교, 2023–24학년도 1학기, 고등학생 약 1,000명, 수학 연습 문제. "
              "두 가지 AI를 비교했습니다. ①일반 챗봇과 같은 인터페이스(GPT Base) ②정답 대신 교사가 설계한 힌트를 주도록 "
@@ -293,10 +302,10 @@ def s09(prs):
         if i < 2:
             txt(s, x + cw + 0.05, y + 1.3, 0.4, 0.4, "›", size=26, bold=True,
                 color="line", align=PP_ALIGN.CENTER)
-    rrect(s, ML, y + 3.15, CW, 1.12, fill="tintteal", line=None, radius=0.12)
-    rich(s, ML + 0.4, y + 3.36, CW - 0.8, 0.6,
-         [[("연령 조건을 충족한다고 곧바로 혼자 써도 된다는 뜻은 아닙니다. ", "teal", True),
-           ("세 관문을 모두 통과했을 때 비로소 ‘우리 아이에게 지금 맞다’고 말할 수 있습니다.", "body", False)]],
+    rrect(s, ML, y + 3.15, CW, 0.8, fill="tintteal", line=None, radius=0.12)
+    rich(s, ML + 0.4, y + 3.36, CW - 0.8, 0.45,
+         [[("나이가 됐다고 바로 혼자 써도 된다는 뜻은 아닙니다. ", "teal", True),
+           ("세 가지를 다 확인하셨다면, 그때 시작하셔도 좋습니다.", "body", False)]],
          size=15)
     footer(s, 9)
     notes(s, "학부모가 가장 많이 묻는 질문이지만, 하나의 숫자로 답하지 않는 것이 정확합니다.\n"
@@ -327,7 +336,7 @@ def s10(prs):
         txt(s, x + 1.0, yy + 0.72, cw - 1.35, 0.6, b.split("\n"), size=13, color="body", spacing=1.3)
     rrect(s, ML, y + 3.72, CW, 0.78, fill="tintblue", line=None, radius=0.12)
     txt(s, ML + 0.4, y + 3.93, CW - 0.8, 0.4,
-        "네 가지가 아직이라면, 금지가 아니라 ‘보호자와 함께 쓰기’ 단계입니다.",
+        "아직 이르다 싶으면 막지 마시고, 옆에서 같이 쓰는 단계로 두세요.",
         size=15.5, bold=True, color="blue")
     footer(s, 10)
     notes(s, "이 네 가지는 집에서 5분이면 확인할 수 있습니다. 실제로 틀린 답을 하나 같이 찾아보는 것이 "

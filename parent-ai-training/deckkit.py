@@ -62,7 +62,7 @@ def _ea(run, font=FONT):
 
 def txt(slide, l, t, w, h, text, size=18, bold=False, color="body",
         align=PP_ALIGN.LEFT, spacing=1.15, anchor=MSO_ANCHOR.TOP,
-        space_after=0, font=FONT, wrap=True):
+        space_after=0, font=FONT, wrap=True, link=None, underline=False):
     """여러 줄 텍스트 상자. text는 str 또는 list[str]."""
     box = slide.shapes.add_textbox(Inches(l), Inches(t), Inches(w), Inches(h))
     tf = box.text_frame
@@ -82,6 +82,10 @@ def txt(slide, l, t, w, h, text, size=18, bold=False, color="body",
         r.font.bold = bold
         r.font.name = font
         r.font.color.rgb = C[color] if isinstance(color, str) else color
+        if underline:
+            r.font.underline = True
+        if link:
+            r.hyperlink.address = link
         _ea(r, font)
     return box
 
@@ -205,10 +209,12 @@ def title(slide, text, kicker=None, sub=None, top=0.62):
     return y
 
 
-def footer(slide, page, source=None, total=30):
+def footer(slide, page, source=None, total=31, link=None):
+    """하단 구분선 + 출처(링크가 있으면 눌러서 원문으로 이동) + 쪽번호."""
     rect(slide, 0, H - 0.52, W, 0.012, fill="line")
     if source:
-        txt(slide, ML, H - 0.40, CW - 1.2, 0.28, source, size=9.5, color="mute")
+        txt(slide, ML, H - 0.40, CW - 1.2, 0.28, source, size=9.5,
+            color="blue" if link else "mute", link=link, underline=bool(link))
     txt(slide, W - ML - 1.0, H - 0.40, 1.0, 0.28, f"{page} / {total}",
         size=9.5, color="mute", align=PP_ALIGN.RIGHT)
 
