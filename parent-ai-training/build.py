@@ -14,7 +14,9 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 # (참조 이름, 슬라이드 함수) — 이 목록의 순서가 곧 발표 순서다.
 ORDER = [
-    ("cover",      A.s01), ("worry",     A.s02), ("three",     A.s03), ("ox",       A.s04),
+    ("cover",      A.s01), ("worry",     A.s02),
+    ("ktuuse",  D.d_ktu_use),
+    ("three",     A.s03), ("ox",       A.s04),
     ("how",        A.s05), ("fork",      A.s06), ("readres",   A.s07), ("bastani",  A.s08),
     ("debt",    D.d_cogdebt),
     ("age",        A.s09), ("ready",     A.s10),
@@ -26,7 +28,7 @@ ORDER = [
     ("homework",   B.s17), ("levels",    B.s18),
     ("tasktypes", D.d_homework),
     ("quiz",       B.s19), ("prompt",    B.s20), ("formula",   C.s21),
-    ("overdep", D.d_overdep),
+    ("overdep", D.d_overdep), ("ktuwish", D.d_ktu_wish),
     ("habit",      C.s22), ("factcheck", C.s23), ("detective", C.s24), ("privacy",  C.s25),
     ("thai",    D.d_thailand), ("aigood", D.d_aiforgood), ("nobel", D.d_nobel),
     ("bok",     D.d_bok), ("myth", D.d_myth), ("wef", D.d_wef),

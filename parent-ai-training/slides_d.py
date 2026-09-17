@@ -2,6 +2,7 @@
 """추가 사례 슬라이드 — 미래 직업, 연구 결과"""
 from deckkit import *
 from pptx.enum.text import PP_ALIGN
+from pptx.dml.color import RGBColor
 
 U_NOBEL = "https://www.nobelprize.org/prizes/physics/2024/summary/"
 U_BOK = "https://www.bok.or.kr/portal/bbs/P0002353/view.do?menuNo=200433&nttId=10080538"
@@ -588,4 +589,144 @@ def d_five(prs):
              "내가 무엇을 모르는지 한 문장으로 말하는 힘이라고 이어 주세요.\n"
              "네 번째와 다섯 번째는 앞 장에서 ‘모든 층에 걸친다’고 말한 바로 그 두 가지입니다.\n"
              "시간이 부족하면 앞 장(3층)만 하고 이 장은 유인물로 대체하셔도 됩니다.")
+    return s
+
+
+U_KTU = "https://www.sisa-news.com/news/article.html?no=269832"
+SRC_KTU = ("출처: 전국교직원노동조합 설문조사(2026. 4. 9~22, 전국 초4~6학년 온라인, "
+           "응답 2,804명 · AI 문항 2,141명), 시사뉴스 2026. 5. 11. 보도")
+
+
+def d_ktu_use(prs):
+    """초등 4~6학년 생성형 AI 사용 실태 (학년별)"""
+    s = blank(prs)
+    y = title(s, "6학년은 열에 여덟이 이미 쓰고 있습니다", kicker="국내 조사 · 초4~6학년",
+              sub="전국 초등학교 4~6학년에게 2026년 4월에 물은 결과입니다.")
+    # 누적 세로 막대: 자주 사용(진한 파랑) + 가끔 사용(옅은 파랑)
+    base = y + 3.42
+    ph = 2.5          # 100% 높이
+    colw, gap = 1.15, 0.72
+    x0 = ML + 0.75
+    LIGHT = RGBColor(0x8F, 0xAC, 0xE8)
+    data = [("4학년", 8.3, 45.6, "553명"), ("5학년", 12.8, 58.9, "737명"),
+            ("6학년", 20.5, 63.7, "851명")]
+    rect(s, ML + 0.35, base, 5.9, 0.012, fill="line")
+    for i, (grade, often, sometimes, n) in enumerate(data):
+        x = x0 + i * (colw + gap)
+        h_o = ph * often / 100.0
+        h_s = ph * sometimes / 100.0
+        rect(s, x, base - h_o, colw, h_o, fill="blue")
+        rect(s, x, base - h_o - h_s - 0.02, colw, h_s, fill=LIGHT)
+        total = often + sometimes
+        txt(s, x - 0.25, base - h_o - h_s - 0.48, colw + 0.5, 0.34,
+            f"{total:.1f}%", size=17, bold=True, color="blue", align=PP_ALIGN.CENTER)
+        if h_s > 0.34:
+            txt(s, x, base - h_o - h_s / 2 - 0.14, colw, 0.28, f"{sometimes}%",
+                size=11.5, bold=True, color="ink", align=PP_ALIGN.CENTER)
+        txt(s, x - 0.3, base - h_o - 0.33, colw + 0.6, 0.28, f"{often}%",
+            size=11, bold=True, color="blue", align=PP_ALIGN.RIGHT)
+        txt(s, x - 0.25, base + 0.1, colw + 0.5, 0.3, grade, size=13, bold=True,
+            color="ink", align=PP_ALIGN.CENTER)
+        txt(s, x - 0.25, base + 0.38, colw + 0.5, 0.25, n, size=10, color="mute",
+            align=PP_ALIGN.CENTER)
+    # 범례
+    rect(s, ML + 4.55, y + 0.34, 0.22, 0.14, fill="blue")
+    txt(s, ML + 4.85, y + 0.28, 1.0, 0.25, "자주 사용", size=11, color="body")
+    rect(s, ML + 4.55, y + 0.62, 0.22, 0.14, fill=LIGHT)
+    txt(s, ML + 4.85, y + 0.56, 1.0, 0.25, "가끔 사용", size=11, color="body")
+
+    bx = ML + 6.45
+    bw = CW - 6.45
+    rrect(s, bx, y + 0.28, bw, 1.5, fill="tintblue", line=None, radius=0.1)
+    txt(s, bx + 0.35, y + 0.5, bw - 0.7, 0.6, "72.1%", size=34, bold=True, color="blue")
+    txt(s, bx + 0.35, y + 1.2, bw - 0.7, 0.4,
+        "초4~6학년 전체가 생성형 AI를 일상적으로 씁니다", size=12.5, color="body", spacing=1.3)
+    rrect(s, bx, y + 1.95, bw, 1.95, fill="tint", line="line", radius=0.1)
+    txt(s, bx + 0.35, y + 2.15, bw - 0.7, 0.3, "아이들도 이미 걱정하고 있습니다",
+        size=12.5, bold=True, color="teal")
+    for i, (pct, what) in enumerate([("31%", "틀린 답이나 이상한 답을\n알려줄까 봐"),
+                                     ("25.7%", "답을 믿어도 되는지\n헷갈려서")]):
+        ry = y + 2.55 + i * 0.68
+        txt(s, bx + 0.35, ry, 0.95, 0.3, pct, size=15, bold=True, color="ink")
+        txt(s, bx + 1.35, ry - 0.04, bw - 1.7, 0.6, what.split("\n"), size=11.5,
+            color="body", spacing=1.25)
+
+    rrect(s, ML, y + 4.08, CW, 0.75, fill="tintteal", line=None, radius=0.1)
+    txt(s, ML + 0.4, y + 4.27, CW - 0.8, 0.4,
+        "쓸지 말지를 정할 시기는 지났습니다. 어떻게 쓰는지를 정할 시기입니다.",
+        size=15.5, bold=True, color="teal")
+    footer(s, 0, SRC_KTU, link=U_KTU)
+    notes(s, "이 조사가 오늘 자료 중 우리 아이와 가장 가까운 숫자입니다. 학년과 대상이 정확히 일치합니다.\n"
+             "학년별 상승이 핵심입니다. 4학년 53.9%, 5학년 71.7%, 6학년 84.2%. "
+             "진한 부분이 ‘자주 사용’인데 이것도 8.3% → 12.8% → 20.5%로 늘어납니다. "
+             "지금 4학년 학부모라면 2년 뒤를 보고 계신 겁니다.\n"
+             "{worry}장에서 본 한국언론진흥재단 수치(초4~6학년 51.2%)와 달라 보이는 이유도 짚어 주세요. "
+             "그쪽은 ‘최근 일주일 안에 써 봤나’를 물었고, 이 조사는 ‘일상적으로 쓰나’를 물었습니다. "
+             "조사 시점도 1년 차이입니다. {readres}장에서 배운 ‘무엇을 측정했나’가 바로 이런 경우입니다.\n"
+             "오른쪽 아래가 이 장에서 가장 반가운 대목입니다. 아이들 스스로 31%가 ‘틀린 답을 알려줄까 봐’, "
+             "25.7%가 ‘믿어도 되는지 헷갈려서’ 걱정된다고 답했습니다. 걱정을 이미 하고 있으니, "
+             "부모가 할 일은 겁을 주는 게 아니라 확인하는 방법을 알려 주는 것입니다. "
+             "{factcheck}장 네 가지 확인이 그 방법입니다.\n"
+             "표본 안내: 설문 전체 응답은 2,804명이고, AI 문항의 학년별 응답 수는 4학년 553명, "
+             "5학년 737명, 6학년 851명(합 2,141명)입니다. 전교조가 실시한 조사이며 "
+             "국가승인통계는 아니라는 점을 덧붙이면 정확합니다.")
+    return s
+
+
+def d_ktu_wish(prs):
+    """스마트기기 사용 시간과 아이들이 어른에게 바라는 것"""
+    s = blank(prs)
+    y = title(s, "아이들이 어른에게 바라는 것은 따로 있었습니다", kicker="국내 조사 · 초4~6학년",
+              sub="같은 조사에서 스마트기기 사용 시간과 바라는 점을 함께 물었습니다.")
+    cw = (CW - 0.4) / 2
+    # 왼쪽: 방과후 사용 시간
+    rrect(s, ML, y + 0.28, cw, 2.5, fill="tint", line="line", radius=0.1)
+    txt(s, ML + 0.35, y + 0.5, cw - 0.7, 0.3, "방과후 스마트기기 2시간 이상",
+        size=13, bold=True, color="teal")
+    txt(s, ML + 0.35, y + 0.86, 2.2, 0.55, "49.2%", size=30, bold=True, color="ink")
+    txt(s, ML + 2.7, y + 0.98, cw - 3.0, 0.4, "초4~6학년 전체", size=12.5, color="mute")
+    for i, (g, pct) in enumerate([("4학년", 33.4), ("5학년", 46.3), ("6학년", 62.1)]):
+        ry = y + 1.58 + i * 0.36
+        txt(s, ML + 0.35, ry, 0.9, 0.28, g, size=12, color="ink")
+        rect(s, ML + 1.3, ry + 0.09, 3.2, 0.13, fill="line")
+        rect(s, ML + 1.3, ry + 0.09, 3.2 * pct / 100.0, 0.13, fill="teal")
+        txt(s, ML + 4.6, ry - 0.02, 0.9, 0.28, f"{pct}%", size=12, bold=True, color="teal")
+    # 오른쪽: 어른에게 바라는 것
+    x2 = ML + cw + 0.4
+    rrect(s, x2, y + 0.28, cw, 2.5, fill="tintblue", line=None, radius=0.1)
+    txt(s, x2 + 0.35, y + 0.5, cw - 0.7, 0.3, "어른들에게 가장 바라는 것",
+        size=13, bold=True, color="blue")
+    for i, (pct, what) in enumerate([("42.4%", "쉬는 시간과 놀이 시간 보장하기"),
+                                     ("42.0%", "공부 부담 줄이기"),
+                                     ("34.8%", "학교폭력·따돌림 없는 안전한 환경")]):
+        ry = y + 0.95 + i * 0.55
+        txt(s, x2 + 0.35, ry, 1.0, 0.3, pct, size=16, bold=True, color="blue")
+        txt(s, x2 + 1.45, ry + 0.03, cw - 1.8, 0.3, what, size=13, color="ink")
+    rect(s, x2 + 0.35, y + 2.38, cw - 0.7, 0.012, fill="line")
+    txt(s, x2 + 0.35, y + 2.5, cw - 0.7, 0.25, "‘스마트기기를 더 쓰게 해 달라’는 답은 없었습니다",
+        size=11, color="mute")
+
+    rrect(s, ML, y + 2.95, CW, 1.05, fill="tint", line="line", radius=0.1)
+    txt(s, ML + 0.4, y + 3.15, CW - 0.8, 0.68,
+        ["조사를 실시한 교원 단체는 이렇게 해석했습니다. 디지털 과의존은 기기 사용 습관만의 문제가 아니라,",
+         "쉬고 놀고 안전하게 지낼 권리가 보장되지 않는 환경에서 기기에 기댈 수밖에 없는 구조의 문제라고."],
+        size=13, color="body", spacing=1.4)
+    rrect(s, ML, y + 4.12, CW, 0.72, fill="ink", line=None, radius=0.1)
+    txt(s, ML, y + 4.32, CW, 0.4,
+        "AI를 못 쓰게 하기 전에, 아이에게 쉴 시간이 있는지부터 봐 주세요.",
+        size=16, bold=True, color="white", align=PP_ALIGN.CENTER)
+    footer(s, 0, SRC_KTU, link=U_KTU)
+    notes(s, "앞 장이 ‘얼마나 쓰나’였다면 이 장은 ‘왜 쓰게 되나’입니다. 연수에서 가장 조용해지는 장입니다.\n"
+             "왼쪽: 방과후 스마트기기 사용이 2시간 이상인 비중이 전체 49.2%이고, 학년이 올라갈수록 "
+             "가파르게 늘어납니다. 부작용으로는 ‘너무 오래 사용하게 된다’가 21.1%로 1위, "
+             "‘공부에 집중이 안 된다’가 16.8%로 2위였습니다. 이것도 학년이 올라갈수록 늘어납니다.\n"
+             "오른쪽을 천천히 읽어 주세요. 같은 아이들에게 어른들에게 바라는 것을 물었더니 1위가 "
+             "‘쉬는 시간과 놀이 시간 보장’(42.4%), 2위가 ‘공부 부담 줄이기’(42%)였습니다. "
+             "스마트기기를 더 쓰게 해 달라는 답은 상위에 없었습니다.\n"
+             "조사 단체의 해석을 그대로 전해 주십시오. 과의존은 기기 습관만의 문제가 아니라 "
+             "쉴 곳이 없는 구조의 문제라는 것입니다. {tasktypes}장에서 다룬 학원 숙제 이야기와 이어집니다.\n"
+             "수치 안내: 학년별 ‘2시간 이상’은 기사에 나온 구간별 비율(2~3시간, 3~4시간, 4시간 초과)을 "
+             "더한 값입니다. 4학년 33.4%, 5학년 46.3%, 6학년 62.1%.\n"
+             "마무리 문장이 오늘 연수에서 부모에게 가장 미안하고 가장 필요한 말입니다. "
+             "시간을 조금 두고 읽어 주세요.")
     return s
