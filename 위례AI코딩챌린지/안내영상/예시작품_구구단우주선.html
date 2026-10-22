@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>구구단 우주선</title>
+<!--
+  2026 위례 AI 코딩 챌린지 · 블록코딩 분야 예시 작품 (안내 영상 3과 같은 작품)
+  3학년 수학 「곱셈」 단원 — 구구단 우주선 (예시: 3학년 2반 최○○)
+
+  · 엔트리로 만든 '구구단 우주선'이 어떻게 움직이는지 보여 주는 시연용 파일이에요.
+    (실제 대회 제출은 엔트리 또는 스크래치 작품의 공유 링크로 해요.)
+  · [시작하기]를 누르면 곱셈 문제 10개가 나와요. 답을 쓰고 확인(또는 Enter)을 눌러요.
+    맞히면 점수 +1, 우주선이 위로 20만큼 올라가고 '정답!'을 1초 동안 말해요.
+    틀리면 '아쉬워요! 다시 도전!'을 1초 동안 말해요. 10문제를 모두 맞히면 '미션 성공!'
+  · 오른쪽 블록 그림에서 지금 실행 중인 블록이 노랗게 빛나요. 반복·조건·변수를 설명할 때 쓰세요.
+  · [정지]를 누르면 처음 상태로 돌아가요. 인터넷 연결 없이 이 파일만 열어도 돼요.
+  · 화면은 예시이며 실제 엔트리와 블록 모양·이름이 조금 다를 수 있어요.
+-->
+<style>
+  :root {
+    --ink: #14233F; --sub: #4A5875; --navy: #1F4E9A; --green: #007A4D; --red: #E5484D; --sun: #FFC93C; --line: #E2E7F0;
+    --c-start: #2FA36B; --c-flow: #F09A2A; --c-move: #3D7DD8; --c-look: #9B6BD8; --c-judge: #14A3A0; --c-calc: #E0645C; --c-data: #D9A400; --c-var: #C99400;
+  }
+  * { box-sizing: border-box; }
+  /* 1rem = 16:9 화면 너비의 1% */
+  html { font-size: min(1vw, 1.7778vh); }
+  @supports (height: 100dvh) { html { font-size: min(1vw, 1.7778dvh); } }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; background: #EEF4FD; color: var(--ink);
+         font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif; word-break: keep-all; }
+  .board { position: relative; width: 100rem; height: 56.25rem; padding: 1.6rem 2rem; display: grid; grid-template-columns: 55rem 1fr; grid-template-rows: auto 1fr auto; gap: 1.2rem 1.8rem;
+           background: radial-gradient(circle at 96% 6%, rgba(31, 78, 154, 0.10) 0 12rem, transparent 12.1rem), radial-gradient(circle at 3% 96%, rgba(255, 122, 89, 0.12) 0 10rem, transparent 10.1rem), #EEF4FD; }
+  header { grid-column: 1 / -1; display: flex; align-items: center; gap: 1.2rem; }
+  header h1 { margin: 0; font-size: 3.2rem; font-weight: 900; color: var(--navy); letter-spacing: -0.03em; }
+  .chip { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.2rem; border-radius: 999px; background: var(--green); color: #fff; font-size: 1.5rem; font-weight: 800; white-space: nowrap; }
+  .chip.navy { background: var(--navy); }
+  .ex { margin-left: auto; padding: 0.4rem 1rem; border-radius: 999px; background: rgba(20, 35, 63, 0.82); color: #fff; font-size: 1.2rem; font-weight: 700; }
+
+  /* ---------- stage ---------- */
+  .left { display: flex; flex-direction: column; gap: 1.1rem; min-height: 0; }
+  .stage { position: relative; width: 55rem; height: 30.9375rem; border-radius: 1.6rem; overflow: hidden; box-shadow: 0 1rem 2.4rem rgba(31, 78, 154, 0.18);
+           background: radial-gradient(circle at 84% 86%, #3E5FA8 0 5rem, transparent 5.1rem), radial-gradient(circle at 12% 20%, rgba(255, 201, 60, 0.9) 0 2.2rem, transparent 2.3rem), linear-gradient(180deg, #0F1D45, #24407F); }
+  .stars i { position: absolute; border-radius: 50%; background: #fff; }
+  .mons { position: absolute; left: 1rem; top: 1rem; display: flex; gap: 0.6rem; z-index: 6; }
+  .mon { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.4rem 0.3rem 0.9rem; border-radius: 0.6rem; background: rgba(255, 255, 255, 0.94); font-size: 1.5rem; font-weight: 800; }
+  .mon b { min-width: 2.2rem; padding: 0 0.5rem; border-radius: 0.45rem; background: var(--c-flow); color: #fff; text-align: center; font-variant-numeric: tabular-nums; }
+  .rocket { position: absolute; width: 4.6rem; height: 6.44rem; margin-left: -2.3rem; margin-top: -3.22rem; z-index: 5; transition: top 0.45s cubic-bezier(.3, 1.4, .5, 1); }
+  .rocket svg { width: 100%; height: 100%; display: block; }
+  .bubble { position: absolute; z-index: 8; padding: 0.7rem 1.4rem; border-radius: 1.2rem; background: #fff; font-size: 2.1rem; font-weight: 900; white-space: nowrap;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3); transform: translateY(-100%); }
+  .bubble::after { content: ''; position: absolute; left: 1.2rem; bottom: -0.9rem; border: 0.5rem solid transparent; border-top: 0.7rem solid #fff; border-left: 0.25rem solid #fff; }
+  .bubble.good { background: #E2F4EB; color: #005C3A; } .bubble.good::after { border-top-color: #E2F4EB; border-left-color: #E2F4EB; }
+  .bubble.bad { background: #FFE5E5; color: #B42318; } .bubble.bad::after { border-top-color: #FFE5E5; border-left-color: #FFE5E5; }
+  .ask { position: absolute; left: 2%; right: 2%; bottom: 3%; z-index: 9; display: flex; align-items: center; gap: 0.8rem; padding: 0.5rem 0.5rem 0.5rem 1.2rem; border-radius: 1rem; background: #fff;
+         box-shadow: 0 0.4rem 1rem rgba(0, 0, 0, 0.3); }
+  .ask input { flex: 1; min-width: 0; border: 0; outline: none; font: inherit; font-size: 2.2rem; font-weight: 800; color: var(--ink); background: transparent; }
+  .ask button { width: 3.8rem; height: 3.8rem; border: 0; border-radius: 0.8rem; background: var(--green); color: #fff; font-size: 2.2rem; font-weight: 900; cursor: pointer; }
+  .win { position: absolute; left: 50%; top: 58%; z-index: 10; transform: translate(-50%, -50%) scale(0.6); opacity: 0; padding: 1rem 2.6rem; border-radius: 1.6rem;
+         background: linear-gradient(135deg, #FFD54A, #F5B400); color: #5A3D00; font-size: 3.4rem; font-weight: 900; white-space: nowrap; box-shadow: 0 1rem 2.4rem rgba(0, 0, 0, 0.35); transition: all 0.4s cubic-bezier(.3, 1.6, .5, 1); }
+  .win.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .hidden { display: none !important; }
+  .ctrl { display: flex; align-items: center; gap: 1rem; }
+  .btn { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.8rem 2rem; border: 0; border-radius: 999px; font: inherit; font-size: 2rem; font-weight: 900; cursor: pointer; box-shadow: 0 0.5rem 1.2rem rgba(31, 78, 154, 0.14); }
+  .btn.run { background: var(--green); color: #fff; } .btn.run.on { background: #F5B400; }
+  .btn.stop { background: #fff; color: var(--sub); }
+  .speed { margin-left: auto; display: inline-flex; align-items: center; gap: 0.6rem; font-size: 1.5rem; font-weight: 700; color: var(--sub); }
+  .speed input { width: 2rem; height: 2rem; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.9rem; }
+  .card { padding: 0.8rem 1rem; border-radius: 1.1rem; background: #fff; box-shadow: 0 0.4rem 1rem rgba(31, 78, 154, 0.1); border-top: 0.6rem solid var(--c); }
+  .card .t { font-size: 1.5rem; font-weight: 900; color: var(--c); }
+  .card .v { font-size: 1.9rem; font-weight: 900; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  /* ---------- blocks ---------- */
+  .right { position: relative; min-height: 0; border-radius: 1.6rem; background-color: #F7F9FC; background-image: radial-gradient(circle, #CBD4E3 0.12rem, transparent 0.15rem); background-size: 1.8rem 1.8rem;
+           box-shadow: 0 1rem 2.4rem rgba(31, 78, 154, 0.12); padding: 1.2rem 1.2rem; overflow: hidden; display: flex; flex-direction: column; gap: 0.5rem; }
+  .right h2 { margin: 0; font-size: 1.6rem; font-weight: 900; color: var(--navy); }
+  .prog { display: flex; flex-direction: column; align-items: flex-start; font-size: 1.08rem; font-weight: 700; color: #fff; }
+  .blk { position: relative; display: inline-flex; flex-direction: column; align-items: flex-start; filter: drop-shadow(0 0.15rem 0 rgba(0, 0, 0, 0.16)); }
+  .face { display: flex; align-items: center; gap: 0.35rem; min-height: 2.15rem; padding: 0.2rem 0.8rem 0.3rem; border-radius: 0.5rem; background: var(--c); white-space: nowrap; }
+  .hat > .face { border-radius: 1.2rem 1.2rem 0.5rem 0.5rem; padding-top: 0.5rem; }
+  .cblk > .face { border-radius: 0.5rem 0.5rem 0 0.5rem; min-width: 12rem; }
+  .mouth { display: flex; }
+  .arm { width: 1.3rem; background: var(--c); flex: none; }
+  .inner { display: flex; flex-direction: column; align-items: flex-start; min-height: 1.4rem; padding: 0.1rem 0; }
+  .foot { width: 12rem; height: 0.9rem; background: var(--c); border-radius: 0 0.5rem 0.5rem 0.5rem; }
+  .else { width: 12rem; min-height: 1.8rem; display: flex; align-items: center; padding: 0 0.9rem; background: var(--c); border-radius: 0 0.5rem 0.5rem 0; }
+  .slot { display: inline-block; min-width: 2rem; padding: 0.05rem 0.6rem; border-radius: 999px; background: #fff; color: var(--ink); font-weight: 800; text-align: center; }
+  .dd { display: inline-flex; align-items: center; gap: 0.2rem; padding: 0.05rem 0.5rem; border-radius: 0.4rem; background: rgba(0, 0, 0, 0.18); }
+  .rep { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.1rem 0.6rem; border-radius: 999px; background: var(--rc); box-shadow: inset 0 0 0 0.1rem rgba(255, 255, 255, 0.45); }
+  .var { --rc: var(--c-var); }
+  .bool { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 1.1rem; background: var(--c-judge); clip-path: polygon(0.7rem 0, calc(100% - 0.7rem) 0, 100% 50%, calc(100% - 0.7rem) 100%, 0.7rem 100%, 0 50%); }
+  .blk.now > .face, .else.now { outline: 0.3rem solid #FFD200; outline-offset: 0.15rem; }
+  .tip { margin-top: auto; padding: 0.7rem 1rem; border-radius: 1rem; background: #fff; border: 0.15rem solid var(--line); font-size: 1.3rem; font-weight: 600; color: var(--sub); line-height: 1.4; }
+  .tip b { color: var(--ink); }
+  .legend { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .legend span { padding: 0.25rem 0.8rem; border-radius: 999px; color: #fff; font-size: 1.25rem; font-weight: 800; }
+  footer { grid-column: 1 / -1; display: flex; align-items: center; gap: 1.4rem; font-size: 1.45rem; font-weight: 700; color: var(--sub); }
+  footer b { color: #E05A3C; }
+</style>
+</head>
+<body>
+<div class="board">
+  <header>
+    <h1>구구단 우주선</h1>
+    <span class="chip">블록코딩 예시</span>
+    <span class="chip navy">3학년 2반 최○○ · 수학 「곱셈」</span>
+    <span class="ex">예시 화면</span>
+  </header>
+
+  <div class="left">
+    <div class="stage" id="stage">
+      <div class="stars" id="stars"></div>
+      <div class="mons"><span class="mon">점수 <b id="m-score">0</b></span><span class="mon">앞수 <b id="m-a">0</b></span><span class="mon">뒷수 <b id="m-b">0</b></span></div>
+      <div class="rocket" id="rocket"><svg viewBox="0 0 100 140" aria-hidden="true">
+        <path d="M38 104 Q50 140 62 104 Z" fill="#FFC93C"/>
+        <path d="M50 6 C74 26 76 70 70 104 L30 104 C24 70 26 26 50 6 Z" fill="#fff" stroke="#1F4E9A" stroke-width="5"/>
+        <circle cx="50" cy="52" r="13" fill="#2F9BDB" stroke="#1F4E9A" stroke-width="5"/>
+        <path d="M30 76 L12 100 L30 100 Z M70 76 L88 100 L70 100 Z" fill="#FF7A59" stroke="#1F4E9A" stroke-width="4" stroke-linejoin="round"/></svg></div>
+      <div class="bubble hidden" id="bubble"></div>
+      <form class="ask hidden" id="ask" autocomplete="off"><input id="answer" type="text" inputmode="numeric" aria-label="대답"><button type="submit" aria-label="확인">✓</button></form>
+      <div class="win" id="win">10점 달성!</div>
+    </div>
+    <div class="ctrl">
+      <button class="btn run" id="run">▶ 시작하기</button>
+      <button class="btn stop" id="stop">■ 정지</button>
+      <label class="speed"><input type="checkbox" id="slow" checked>블록 천천히 보기</label>
+    </div>
+    <div class="cards">
+      <div class="card" style="--c:var(--c-flow)"><div class="t">반복</div><div class="v">문제 <span id="c-n">0</span> / 10</div></div>
+      <div class="card" style="--c:var(--c-var)"><div class="t">변수</div><div class="v">점수 <span id="c-s">0</span>점</div></div>
+      <div class="card" style="--c:var(--c-judge)"><div class="t">조건</div><div class="v" id="c-j">?</div></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <h2>블록 조립소 (지금 실행 중인 블록이 빛나요)</h2>
+    <div class="prog" id="prog"></div>
+    <div class="tip"><b>문제 글자 만들기</b>: 계산 꾸러미의 <b>'~과(와) ~를 합치기'</b> 블록 3개로 <b>앞수 값</b> · <b>" × "</b> · <b>뒷수 값</b> · <b>" = ?"</b>를 이어요.</div>
+  </div>
+
+  <footer>
+    <span>제출: 구글 설문에 작품 공유 링크 · 마감 <b>11. 6.(금) 오후 4시</b></span>
+    <span style="margin-left:auto">화면은 예시이며 실제 엔트리와 블록 모양·이름이 조금 다를 수 있어요.</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  // ---------------------------------------------------------------- stars
+  const stars = $('stars');
+  for (let i = 0; i < 46; i++) {
+    const s = document.createElement('i');
+    s.style.left = (Math.random() * 100).toFixed(1) + '%';
+    s.style.top = (Math.random() * 100).toFixed(1) + '%';
+    const z = (0.15 + Math.random() * 0.3).toFixed(2) + 'rem';
+    s.style.width = s.style.height = z;
+    s.style.opacity = (0.5 + Math.random() * 0.5).toFixed(2);
+    stars.appendChild(s);
+  }
+
+  // ---------------------------------------------------------------- blocks (같은 순서·이름으로 그려요)
+  const S = (x) => `<span class="slot">${x}</span>`;
+  const DD = (x) => `<span class="dd">${x} ▾</span>`;
+  const Vr = (x) => `<span class="rep var">${x}</span>`;
+  const R = (x) => `<span class="rep" style="--rc:var(--c-calc)">${x}</span>`;
+  const B = (x) => `<span class="bool">${x}</span>`;
+  const PROGRAM = [
+    { id: 'hat', cat: 'start', hat: true, html: '▶ 시작하기 버튼을 클릭했을 때' },
+    { id: 'set0', cat: 'data', html: `${DD('점수')}를 ${S(0)}(으)로 정하기` },
+    { id: 'rep', cat: 'flow', html: `${S(10)} 번 반복하기`, kids: [
+      { id: 'setA', cat: 'data', html: `${DD('앞수')}를 ${R(`${S(2)}부터 ${S(9)} 사이의 무작위 수`)}(으)로 정하기` },
+      { id: 'setB', cat: 'data', html: `${DD('뒷수')}를 ${R(`${S(1)}부터 ${S(9)} 사이의 무작위 수`)}(으)로 정하기` },
+      { id: 'ask', cat: 'data', html: `${R(`${Vr('앞수')} × ${Vr('뒷수')} = ?`)}을(를) 묻고 대답 기다리기` },
+      { id: 'if', cat: 'flow', html: `만일 ${B(`${Vr('대답')} = ${R(`${Vr('앞수')} × ${Vr('뒷수')}`)}`)}(이)라면`, kids: [
+        { id: 'add', cat: 'data', html: `${DD('점수')}에 ${S(1)}만큼 더하기` },
+        { id: 'y', cat: 'move', html: `y 좌표를 ${S(20)}만큼 바꾸기` },
+        { id: 'ok', cat: 'look', html: `${S('정답!')}을(를) ${S(1)}초 동안 말하기` },
+      ], elseKids: [
+        { id: 'no', cat: 'look', html: `${S('아쉬워요! 다시 도전!')}을(를) ${S(1)}초 동안 말하기` },
+      ] },
+    ] },
+    { id: 'if2', cat: 'flow', html: `만일 ${B(`${Vr('점수')} = ${S(10)}`)}(이)라면`, kids: [
+      { id: 'win', cat: 'look', html: `${S('미션 성공!')}을(를) 말하기` },
+    ] },
+  ];
+  const EL = {};
+  function build(list, parent) {
+    for (const d of list) {
+      const b = document.createElement('div');
+      const isC = !!d.kids;
+      b.className = 'blk' + (d.hat ? ' hat' : '') + (isC ? ' cblk' : '');
+      b.style.setProperty('--c', `var(--c-${d.cat})`);
+      b.innerHTML = `<div class="face">${d.html}</div>`;
+      if (isC) {
+        const m = document.createElement('div'); m.className = 'mouth'; m.innerHTML = '<div class="arm"></div><div class="inner"></div>';
+        b.appendChild(m); build(d.kids, m.lastElementChild);
+        if (d.elseKids) {
+          const e = document.createElement('div'); e.className = 'else'; e.textContent = '아니면'; b.appendChild(e); EL[d.id + '_else'] = e;
+          const m2 = document.createElement('div'); m2.className = 'mouth'; m2.innerHTML = '<div class="arm"></div><div class="inner"></div>';
+          b.appendChild(m2); build(d.elseKids, m2.lastElementChild);
+        }
+        const f = document.createElement('div'); f.className = 'foot'; b.appendChild(f);
+      }
+      parent.appendChild(b);
+      EL[d.id] = b;
+    }
+  }
+  build(PROGRAM, $('prog'));
+
+  // ---------------------------------------------------------------- runtime
+  const rocket = $('rocket'), bubble = $('bubble'), ask = $('ask'), answer = $('answer'), win = $('win'), runBtn = $('run');
+  const Y0 = -100;                       // 엔트리 좌표: 실행 화면 가로 480, 세로 270 (y는 -135 ~ 135)
+  let y = Y0, score = 0, a = 0, b = 0, runId = 0;
+  function place() { rocket.style.left = '50%'; rocket.style.top = ((135 - y) / 270 * 100) + '%'; }
+  function mons() { $('m-score').textContent = score; $('m-a').textContent = a; $('m-b').textContent = b; $('c-s').textContent = score; }
+  function say(text, kind) {
+    bubble.className = 'bubble' + (kind ? ' ' + kind : '');
+    bubble.textContent = text;
+    const top = (135 - y) / 270 * 100;
+    bubble.style.left = 'calc(50% + 2.6rem)';
+    bubble.style.top = `calc(${top}% - 0.5rem)`;
+  }
+  function hush() { bubble.className = 'bubble hidden'; }
+  function now(id) { document.querySelectorAll('.now').forEach((e) => e.classList.remove('now')); if (id) EL[id].classList.add('now'); }
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  class Stop extends Error {}
+  async function step(id, my, extra) {
+    if (my !== runId) throw new Stop();
+    now(id);
+    if (extra) extra.classList.add('now');
+    await sleep($('slow').checked ? 380 : 40);
+    if (my !== runId) throw new Stop();
+  }
+  function waitAnswer(my) {
+    return new Promise((resolve, reject) => {
+      ask.classList.remove('hidden'); answer.value = ''; answer.focus();
+      const onSubmit = (e) => { e.preventDefault(); if (answer.value.trim() === '') return; cleanup(); resolve(answer.value.trim()); };
+      const timer = setInterval(() => { if (my !== runId) { cleanup(); reject(new Stop()); } }, 100);
+      function cleanup() { clearInterval(timer); ask.removeEventListener('submit', onSubmit); ask.classList.add('hidden'); }
+      ask.addEventListener('submit', onSubmit);
+    });
+  }
+  async function run() {
+    const my = ++runId;
+    runBtn.classList.add('on'); win.classList.remove('on'); hush();
+    try {
+      await step('hat', my);
+      await step('set0', my); score = 0; mons(); $('c-j').textContent = '?';
+      for (let i = 1; i <= 10; i++) {                        // 10번 반복하기
+        await step('rep', my); $('c-n').textContent = i;
+        await step('setA', my); a = 2 + Math.floor(Math.random() * 8); mons();   // 2부터 9 사이의 무작위 수
+        await step('setB', my); b = 1 + Math.floor(Math.random() * 9); mons();   // 1부터 9 사이의 무작위 수
+        await step('ask', my); say(`${a} × ${b} = ?`);
+        const reply = await waitAnswer(my);
+        hush();
+        await step('if', my);
+        if (Number(reply) === a * b) {                       // 만일 대답 = 앞수 × 뒷수 (이)라면
+          $('c-j').innerHTML = `${reply} = ${a} × ${b} → <span style="color:var(--green)">정답!</span>`;
+          await step('add', my); score += 1; mons();
+          await step('y', my); y += 20; place();
+          await step('ok', my); say('정답!', 'good'); await sleep(1000); hush();
+        } else {                                             // 아니면
+          $('c-j').innerHTML = `${reply} ≠ ${a} × ${b} → <span style="color:var(--red)">아니면</span>`;
+          await step('no', my, EL.if_else); say('아쉬워요! 다시 도전!', 'bad'); await sleep(1000); hush();
+        }
+      }
+      await step('if2', my);
+      if (score === 10) { await step('win', my); say('미션 성공!', 'good'); win.classList.add('on'); }
+      now(null);
+    } catch (e) { if (!(e instanceof Stop)) throw e; }
+    if (my === runId) runBtn.classList.remove('on');
+  }
+  function stop() {
+    runId++;                                                 // 실행 중인 반복을 멈춰요
+    now(null); hush(); ask.classList.add('hidden'); win.classList.remove('on'); runBtn.classList.remove('on');
+    y = Y0; place();                                         // 정지하면 처음 위치로 돌아가요
+  }
+  runBtn.addEventListener('click', () => { stop(); run(); });
+  $('stop').addEventListener('click', stop);
+  place(); mons();
+})();
+</script>
+</body>
+</html>

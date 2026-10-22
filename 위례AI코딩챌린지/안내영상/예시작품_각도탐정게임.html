@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>각도 탐정 게임</title>
+<!--
+  2026 위례 AI 코딩 챌린지 · 바이브코딩 분야 예시 작품
+  4학년 수학 「각도」 단원 — 각도 탐정 게임 (예시: 4학년 3반 김○○)
+
+  · 화면에 각이 하나 나오면 예각, 직각, 둔각 중에서 골라요.
+  · 맞히면 별이 하나씩 올라가고, 10문제가 끝나면 점수를 보여 줘요.
+  · 아래쪽 '버전 보기' 버튼으로 처음 만든 게임과 고친 게임을 비교할 수 있어요.
+      처음 만든 게임 : 첫 요청으로 만든 게임
+      고치기 1       : "글씨를 더 크게 해 줘."
+      고치기 2       : "틀리면 왜 틀렸는지 한 문장으로 알려 줘."
+      고치기 3       : "각도기 그림처럼 숫자 눈금도 보여 줘."  (완성 버전, 처음 열면 이 버전)
+  · 인터넷 연결 없이 이 파일만 열어도 돼요. 주소 끝에 ?v=1 ~ ?v=4 를 붙이면 그 버전으로 열려요.
+  · 키보드: 1 예각, 2 직각, 3 둔각, Enter 다음 문제
+-->
+<style>
+  :root {
+    --ink: #1E2A44; --sub: #5A6785; --navy: #1F4E9A; --green: #0E8A5F; --red: #E5484D;
+    --sun: #FFC93C; --acute: #2F8FD0; --right: #8A63D2; --obtuse: #EE6A47; --line: #E3E8F2;
+    /* 처음 만든 게임: 기본 글씨 크기 */
+    --fs-title: 2.3rem; --fs-qnum: 1.9rem; --star: 2.2rem; --fs-ask: 2.4rem; --fs-choice: 2.6rem;
+    --pad-choice: 1.3rem; --fs-fb: 2.3rem; --fs-fb2: 1.9rem; --fs-why: 1.8rem; --fs-next: 1.9rem;
+  }
+  /* 고치기 1: 글씨를 더 크게 */
+  body.big {
+    --fs-title: 3.1rem; --fs-qnum: 2.6rem; --star: 2.6rem; --fs-ask: 3.6rem; --fs-choice: 4rem;
+    --pad-choice: 1.4rem; --fs-fb: 3.2rem; --fs-fb2: 2.6rem; --fs-why: 2.15rem; --fs-next: 2.6rem;
+  }
+  * { box-sizing: border-box; }
+  /* 1rem = 16:9 게임판 너비의 1% — 아이패드, 컴퓨터, TV 어디서나 화면에 꽉 차게 */
+  html { font-size: min(1vw, 1.7778vh); }
+  @supports (height: 100dvh) { html { font-size: min(1vw, 1.7778dvh); } }
+  @media (max-aspect-ratio: 1/1) {
+    html { font-size: min(1.5625vw, 1vh); }
+    @supports (height: 100dvh) { html { font-size: min(1.5625vw, 1dvh); } }
+  }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 8% 12%, #FFE7A8 0 14rem, transparent 14.1rem),
+                radial-gradient(circle at 94% 90%, #D8ECFF 0 16rem, transparent 16.1rem), #FFF6E5;
+    font-family: "Pretendard", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", "Noto Sans KR", sans-serif;
+    color: var(--ink); word-break: keep-all; line-height: 1.3;
+    -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+  }
+  button { font: inherit; border: 0; cursor: pointer; }
+  .board { width: 100rem; height: 56.25rem; display: flex; flex-direction: column; gap: 1.3rem; padding: 1.7rem 2.4rem 1.5rem; position: relative; }
+
+  /* 위쪽 막대: 제목, 문제 번호, 별 */
+  .top { flex: none; height: 6rem; display: flex; align-items: center; gap: 2rem; padding: 0 2rem;
+         background: #fff; border-radius: 2rem; box-shadow: 0 .4rem 1.2rem rgba(31, 78, 154, .10); }
+  .title { display: flex; align-items: center; gap: .7rem; font-size: var(--fs-title); font-weight: 900; color: var(--navy); white-space: nowrap; }
+  .title svg { width: 1.3em; height: 1.3em; }
+  .qnum { margin-left: auto; font-size: var(--fs-qnum); font-weight: 700; color: var(--sub); white-space: nowrap; }
+  .qnum b { color: var(--ink); font-weight: 900; }
+  .stars { display: flex; align-items: center; gap: .2rem; }
+  .star { width: var(--star); height: var(--star); display: block; }
+  .star path { fill: #E3E7EF; }
+  .star.on path { fill: var(--sun); stroke: #E2A400; stroke-width: 1; }
+  .star-n { margin-left: .7rem; font-size: var(--fs-qnum); font-weight: 900; color: #C08600; min-width: 1.4em; }
+
+  /* 가운데: 각 그림 + 고르기 */
+  .play { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .angle-card { position: relative; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 1.4rem;
+                background: #fff; border-radius: 2.4rem; box-shadow: 0 .6rem 1.6rem rgba(31, 78, 154, .12); }
+  .angle-card svg { width: 100%; height: 100%; display: block; }
+  .tick-num { font-size: 31px; font-weight: 800; fill: #2F4F86; paint-order: stroke; stroke: #fff; stroke-width: 8px; stroke-linejoin: round; text-anchor: middle; dominant-baseline: central; }
+  .tick-num.t90 { fill: var(--right); }
+  .deg-label { font-size: 34px; font-weight: 900; fill: #B07800; paint-order: stroke; stroke: #fff; stroke-width: 8px; text-anchor: middle; dominant-baseline: central; }
+  .side { display: flex; flex-direction: column; justify-content: center; gap: 1.4rem; min-width: 0; }
+  .ask { margin: 0; font-size: var(--fs-ask); font-weight: 800; }
+  .choices { display: flex; gap: 1.2rem; }
+  .choice { position: relative; flex: 1; padding: var(--pad-choice) 0; border-radius: 1.8rem; color: #fff; font-size: var(--fs-choice); font-weight: 900;
+            box-shadow: 0 .5rem 0 rgba(20, 35, 63, .18); }
+  .c-acute { background: var(--acute); } .c-right { background: var(--right); } .c-obtuse { background: var(--obtuse); }
+  .choice:disabled { cursor: default; opacity: .38; }
+  .choice.correct { opacity: 1; box-shadow: 0 0 0 .45rem #fff, 0 0 0 .9rem var(--green); }
+  .choice.wrong { opacity: 1; box-shadow: 0 0 0 .45rem #fff, 0 0 0 .9rem var(--red); }
+  .feedback { min-height: 4rem; padding: 1.1rem 1.5rem; border-radius: 1.8rem; background: #fff; box-shadow: 0 .4rem 1.2rem rgba(31, 78, 154, .10); }
+  .feedback.empty { visibility: hidden; }
+  .fb-main { display: flex; align-items: center; gap: .6rem; font-size: var(--fs-fb); font-weight: 900; }
+  .fb-main svg { width: 1.1em; height: 1.1em; flex: none; }
+  .fb-main.ok { color: var(--green); } .fb-main.no { color: var(--red); }
+  .fb-sub { margin-top: .3rem; font-size: var(--fs-fb2); font-weight: 700; }
+  .fb-sub b { font-weight: 900; }
+  .fb-why { display: flex; gap: .7rem; align-items: flex-start; margin-top: .8rem; padding: .8rem 1.1rem; border-radius: 1.2rem;
+            background: #FFF3C4; color: #4A3A00; font-size: var(--fs-why); font-weight: 650; line-height: 1.4; }
+  .fb-why svg { width: 1.2em; height: 1.2em; flex: none; margin-top: .1em; }
+  .fb-why.hide { display: none; }
+  .next { position: relative; align-self: flex-end; display: flex; align-items: center; gap: .6rem; padding: .9rem 2.4rem; border-radius: 999px;
+          background: var(--navy); color: #fff; font-size: var(--fs-next); font-weight: 800; box-shadow: 0 .4rem 0 rgba(20, 35, 63, .2); }
+  .next svg { width: 1em; height: 1em; }
+  .next.hide { visibility: hidden; }
+
+  /* 결과 화면 */
+  .result { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .hidden { display: none !important; }
+  .res-card { display: flex; flex-direction: column; align-items: center; gap: 1.1rem; padding: 2rem 6rem 2.2rem; background: #fff; border-radius: 3rem;
+              box-shadow: 0 .8rem 2.4rem rgba(31, 78, 154, .16); text-align: center; }
+  .res-title { display: flex; align-items: center; gap: 1rem; font-size: calc(var(--fs-ask) * 1.25); font-weight: 900; color: var(--navy); }
+  .res-title svg { width: 1.2em; height: 1.2em; }
+  .res-line { font-size: var(--fs-ask); font-weight: 700; }
+  .res-line b { color: var(--green); font-weight: 900; }
+  .res-stars { display: flex; gap: .3rem; }
+  .res-stars .star { width: calc(var(--star) * 1.35); height: calc(var(--star) * 1.35); }
+  .res-score { font-size: calc(var(--fs-ask) * 1.15); font-weight: 800; }
+  .res-score b { font-size: 1.8em; color: #D08A00; font-weight: 900; }
+  .res-msg { font-size: var(--fs-fb2); font-weight: 700; color: var(--sub); }
+  .again { padding: .9rem 2.6rem; border-radius: 999px; background: var(--green); color: #fff; font-size: var(--fs-next); font-weight: 800; box-shadow: 0 .4rem 0 rgba(20, 35, 63, .2); }
+
+  /* 버전 보기 (선생님 시연용) */
+  .versions { flex: none; display: flex; align-items: center; justify-content: center; gap: .8rem; height: 3.2rem; font-size: 1.45rem; }
+  .versions span { font-weight: 800; color: var(--sub); }
+  .versions button { padding: .45rem 1.3rem; border-radius: 999px; background: rgba(255, 255, 255, .85); color: var(--sub); font-weight: 700; border: .15rem solid var(--line); }
+  .versions button.on { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .embed .versions { display: none; }
+
+  /* 세로 화면 (아이패드 세로) */
+  @media (max-aspect-ratio: 1/1) {
+    .board { width: 64rem; height: 100rem; }
+    .top { height: auto; flex-wrap: wrap; row-gap: .6rem; padding: 1.2rem 2rem; }
+    .play { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    .versions { flex-wrap: wrap; height: auto; font-size: 1.8rem; }
+  }
+
+  /* 움직임 */
+  @keyframes pop { 0% { transform: scale(1); } 45% { transform: scale(1.7); } 100% { transform: scale(1); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-1rem); } 40% { transform: translateX(1rem); } 60% { transform: translateX(-.6rem); } 80% { transform: translateX(.6rem); } }
+  @keyframes rise { from { opacity: 0; transform: translateY(1rem); } to { opacity: 1; transform: none; } }
+  @keyframes enter { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
+  .star.pop { animation: pop .5s ease-out; }
+  .choice.shake { animation: shake .45s; }
+  .feedback.rise { animation: rise .3s ease-out; }
+  .angle-card svg.enter, .res-card.enter { animation: enter .35s ease-out; }
+
+  /* 안내 영상용 시연 모드 (영상에서만 쓰여요) */
+  .demo *, .demo *::before, .demo *::after { animation: none !important; transition: none !important; }
+  .tapdot { position: absolute; left: 50%; top: 58%; width: 4.4rem; height: 4.4rem; margin: -2.2rem 0 0 -2.2rem; border-radius: 50%;
+            background: rgba(255, 255, 255, .55); border: .35rem solid rgba(20, 35, 63, .75); opacity: 0; pointer-events: none; }
+  .tapdot i { position: absolute; inset: -.35rem; border-radius: 50%; border: .3rem solid rgba(20, 35, 63, .6); opacity: 0; }
+</style>
+</head>
+<body>
+<div class="board" id="board">
+  <header class="top">
+    <div class="title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/><path d="M8 13 L8 8 L13 13 Z" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      <span>각도 탐정 게임</span>
+    </div>
+    <div class="qnum" id="qnum"></div>
+    <div class="stars" id="stars"></div>
+  </header>
+
+  <main class="play" id="play">
+    <section class="angle-card"><svg id="angle" viewBox="0 0 640 400" aria-label="각 그림"></svg></section>
+    <section class="side">
+      <p class="ask">이 각은 어떤 각일까요?</p>
+      <div class="choices">
+        <button class="choice c-acute" data-k="예각">예각</button>
+        <button class="choice c-right" data-k="직각">직각</button>
+        <button class="choice c-obtuse" data-k="둔각">둔각</button>
+      </div>
+      <div class="feedback empty" id="feedback">
+        <div class="fb-main" id="fbMain"></div>
+        <div class="fb-sub" id="fbSub"></div>
+        <div class="fb-why hide" id="fbWhy"></div>
+      </div>
+      <button class="next hide" id="nextBtn"><span id="nextLabel">다음 문제</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4 L20 12 L7 20 Z"/></svg></button>
+    </section>
+  </main>
+
+  <section class="result hidden" id="result">
+    <div class="res-card" id="resCard">
+      <div class="res-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" fill="#FFC93C"/></svg>
+        <span>게임 끝!</span>
+      </div>
+      <div class="res-line">10문제 중 <b id="resN">0</b>문제를 맞혔어요.</div>
+      <div class="res-stars" id="resStars"></div>
+      <div class="res-score">점수 <b id="resScore">0</b>점</div>
+      <div class="res-msg" id="resMsg"></div>
+      <button class="again" id="againBtn">다시 하기</button>
+    </div>
+  </section>
+
+  <footer class="versions" id="versions">
+    <span>버전 보기</span>
+    <button data-v="1">처음 만든 게임</button>
+    <button data-v="2">고치기 1 · 글씨 크게</button>
+    <button data-v="3">고치기 2 · 틀린 이유</button>
+    <button data-v="4">고치기 3 · 숫자 눈금</button>
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var CFG = window.GAME_CFG || {};
+  var EMBED = !!CFG.embed;            // 안내 영상 안에서 보여 줄 때만 true
+  var TOTAL = 10;
+  var STAR_PATH = 'M12 2.4l2.95 6.05 6.65.85-4.9 4.6 1.25 6.6L12 17.25 6.05 20.5l1.25-6.6-4.9-4.6 6.65-.85z';
+  var ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg>';
+  var ICON_NO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>';
+  var ICON_BULB = '<svg viewBox="0 0 24 24" fill="#FFC93C" stroke="#8A6500" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M15.1 14c.2-1 .7-1.7 1.4-2.5A6 6 0 1 0 6 8c0 1.3.5 2.4 1.5 3.5.7.8 1.2 1.5 1.4 2.5z"/></svg>';
+
+  function $(id) { return document.getElementById(id); }
+  var qnumEl = $('qnum'), starsEl = $('stars'), svg = $('angle'), play = $('play'), result = $('result');
+  var fb = $('feedback'), fbMain = $('fbMain'), fbSub = $('fbSub'), fbWhy = $('fbWhy');
+  var nextBtn = $('nextBtn'), nextLabel = $('nextLabel'), againBtn = $('againBtn');
+  var choiceBtns = Array.prototype.slice.call(document.querySelectorAll('.choice'));
+  var versionBtns = Array.prototype.slice.call(document.querySelectorAll('.versions button'));
+
+  // 별 10개 만들기
+  function starSVG() { return '<svg class="star" viewBox="0 0 24 24"><path d="' + STAR_PATH + '"/></svg>'; }
+  var starsHTML = '';
+  for (var i = 0; i < TOTAL; i++) starsHTML += starSVG();
+  starsEl.innerHTML = starsHTML + '<span class="star-n" id="starN">0</span>';
+  $('resStars').innerHTML = starsHTML;
+  var starEls = Array.prototype.slice.call(starsEl.querySelectorAll('.star'));
+  var resStarEls = Array.prototype.slice.call($('resStars').querySelectorAll('.star'));
+
+  // 버전(고치기 단계): 1 처음, 2 글씨 크게, 3 틀린 이유, 4 숫자 눈금
+  function urlLevel() {
+    try { var v = parseInt(new URLSearchParams(location.search).get('v'), 10); return v >= 1 && v <= 4 ? v : null; } catch (e) { return null; }
+  }
+  var level = CFG.level || urlLevel() || 4;
+
+  /* ---------------- 문제와 정답 ---------------- */
+  function kindOf(a) { return a < 90 ? '예각' : a === 90 ? '직각' : '둔각'; }
+  // 틀린 이유 한 문장 (숫자와 '보다'가 줄바꿈으로 갈라지지 않게 묶어요)
+  function nw(t) { return '<span style="white-space:nowrap">' + t + '</span>'; }
+  function reasonOf(a) {
+    if (a < 90) return '이 각은 ' + nw(a + '°로,') + ' ' + nw('직각(90°)보다') + ' 작아서 예각이에요.';
+    if (a === 90) return '이 각은 ' + nw('딱 90°라서') + ' 직각이에요.';
+    return '이 각은 ' + nw(a + '°로,') + ' ' + nw('직각(90°)보다') + ' 크고 ' + nw('180°보다') + ' 작아서 둔각이에요.';
+  }
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+    return arr;
+  }
+  function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
+  // 10문제: 예각 4개, 직각 2개, 둔각 4개를 섞어요
+  function makeQuestions() {
+    var kinds = shuffle(['예각', '예각', '예각', '예각', '직각', '직각', '둔각', '둔각', '둔각', '둔각']);
+    var acute = [], obtuse = [], d;
+    for (d = 25; d <= 75; d += 5) acute.push(d);
+    for (d = 105; d <= 160; d += 5) obtuse.push(d);
+    var qs = [], prev = -1;
+    kinds.forEach(function (k) {
+      var a;
+      do { a = k === '예각' ? pick(acute) : k === '직각' ? 90 : pick(obtuse); } while (a === prev && k !== '직각');
+      qs.push(a); prev = a;
+    });
+    return qs;
+  }
+  function newState(qs) { return { qs: qs, q: 0, stars: 0, answered: null, finished: false }; }
+  var S = newState(makeQuestions());
+
+  function answer(k) {
+    if (S.finished || S.answered) return false;
+    S.answered = k;
+    if (k === kindOf(S.qs[S.q])) S.stars++;
+    return true;
+  }
+  function next() {
+    if (!S.answered) return false;
+    if (S.q >= TOTAL - 1) S.finished = true;
+    else { S.q++; S.answered = null; }
+    return true;
+  }
+
+  /* ---------------- 각 그리기 ---------------- */
+  function f1(n) { return Math.round(n * 10) / 10; }
+  function angleSVG(a, lv, answered) {
+    var R = 232, PI = Math.PI;
+    // 각도기가 있으면 반직선을 눈금 끝까지만 그려서 숫자 눈금(바깥쪽)을 가리지 않아요
+    var L = lv >= 4 ? R + 6 : 292;
+    var rad = a * PI / 180;
+    var V = { x: 320, y: 352 };
+    if (lv < 4) {
+      // 각도기가 없을 때는 각 그림을 카드 가운데에 놓아요
+      var xmin = Math.min(0, L * Math.cos(rad));
+      V = { x: Math.round(320 - (xmin + L) / 2), y: Math.round(206 + (L * Math.sin(rad)) / 2) };
+    }
+    var s = '', nums = '';
+    if (lv >= 4) {
+      // 각도기 모양 눈금 (고치기 3)
+      s += '<path d="M ' + (V.x - R) + ' ' + V.y + ' A ' + R + ' ' + R + ' 0 0 1 ' + (V.x + R) + ' ' + V.y + ' Z" fill="#EDF5FF" stroke="#8FAEDB" stroke-width="3"/>';
+      for (var d = 0; d <= 180; d += 5) {
+        var r1 = R - (d % 30 === 0 ? 28 : d % 10 === 0 ? 18 : 10);
+        var c = Math.cos(d * PI / 180), sn = Math.sin(d * PI / 180);
+        s += '<line x1="' + f1(V.x + r1 * c) + '" y1="' + f1(V.y - r1 * sn) + '" x2="' + f1(V.x + R * c) + '" y2="' + f1(V.y - R * sn) + '" stroke="#5E7FB3" stroke-width="' + (d % 30 === 0 ? 3.6 : 2) + '"/>';
+      }
+      for (var n = 0; n <= 180; n += 30) {
+        var rr = R + 30, cx = V.x + rr * Math.cos(n * PI / 180), cy = V.y - rr * Math.sin(n * PI / 180);
+        if (n === 0 || n === 180) cy -= 22;
+        nums += '<text class="tick-num' + (n === 90 ? ' t90' : '') + '" x="' + f1(cx) + '" y="' + f1(cy) + '">' + n + '</text>';
+      }
+    }
+    // 각을 칠한 부분과 표시
+    var r = 66;
+    if (a === 90) {
+      s += '<path d="M ' + V.x + ' ' + V.y + ' h 46 v -46 h -46 Z" fill="#FFE7A0" stroke="#D99A00" stroke-width="5"/>';
+    } else {
+      var ax = V.x + r * Math.cos(rad), ay = V.y - r * Math.sin(rad);
+      s += '<path d="M ' + V.x + ' ' + V.y + ' L ' + (V.x + r) + ' ' + V.y + ' A ' + r + ' ' + r + ' 0 0 0 ' + f1(ax) + ' ' + f1(ay) + ' Z" fill="#FFE7A0"/>';
+      s += '<path d="M ' + (V.x + r) + ' ' + V.y + ' A ' + r + ' ' + r + ' 0 0 0 ' + f1(ax) + ' ' + f1(ay) + '" fill="none" stroke="#D99A00" stroke-width="5"/>';
+    }
+    // 두 반직선
+    s += '<line x1="' + V.x + '" y1="' + V.y + '" x2="' + (V.x + L) + '" y2="' + V.y + '" stroke="#1E2A44" stroke-width="10" stroke-linecap="round"/>';
+    s += '<line x1="' + V.x + '" y1="' + V.y + '" x2="' + f1(V.x + L * Math.cos(rad)) + '" y2="' + f1(V.y - L * Math.sin(rad)) + '" stroke="#1E2A44" stroke-width="10" stroke-linecap="round"/>';
+    s += nums;   // 숫자 눈금은 반직선보다 나중에(위에) 그려요
+    s += '<circle cx="' + V.x + '" cy="' + V.y + '" r="11" fill="#E5484D" stroke="#fff" stroke-width="4"/>';
+    // 답을 고른 뒤 각도 보여 주기 (고치기 2부터)
+    if (lv >= 3 && answered) {
+      var lr = a === 90 ? 92 : 112, la = (a / 2) * PI / 180;
+      s += '<text class="deg-label" x="' + f1(V.x + lr * Math.cos(la)) + '" y="' + f1(V.y - lr * Math.sin(la) - (a > 150 ? 18 : 0)) + '">' + a + '°</text>';
+    }
+    return s;
+  }
+
+  /* ---------------- 화면 그리기 ---------------- */
+  function setHTML(el, html) { if (el.__h !== html) { el.__h = html; el.innerHTML = html; } }
+  function cls(el, name, on) { if (el.classList.contains(name) !== !!on) el.classList.toggle(name, !!on); }
+
+  function draw() {
+    var lv = level;
+    cls(document.body, 'big', lv >= 2);
+    versionBtns.forEach(function (b) { cls(b, 'on', +b.getAttribute('data-v') === lv); });
+    setHTML(qnumEl, '문제 <b>' + (S.q + 1) + '</b> / ' + TOTAL);
+    starEls.forEach(function (st, i) { cls(st, 'on', i < S.stars); });
+    setHTML($('starN'), String(S.stars));
+
+    cls(play, 'hidden', S.finished);
+    cls(result, 'hidden', !S.finished);
+    if (S.finished) {
+      setHTML($('resN'), String(S.stars));
+      setHTML($('resScore'), String(S.stars * 10));
+      resStarEls.forEach(function (st, i) { cls(st, 'on', i < S.stars); });
+      setHTML($('resMsg'), S.stars === TOTAL ? '완벽해요! 진짜 각도 탐정이에요!' : S.stars >= 7 ? '잘했어요! 각도 박사가 되어 가요.' : '괜찮아요! 다시 도전해 봐요.');
+      return;
+    }
+    var a = S.qs[S.q], right = kindOf(a), ans = S.answered;
+    setHTML(svg, angleSVG(a, lv, !!ans));
+    choiceBtns.forEach(function (b) {
+      var k = b.getAttribute('data-k');
+      b.disabled = !!ans;
+      cls(b, 'correct', !!ans && k === right);
+      cls(b, 'wrong', !!ans && k === ans && k !== right);
+    });
+    cls(fb, 'empty', !ans);
+    if (ans) {
+      var ok = ans === right;
+      cls(fbMain, 'ok', ok); cls(fbMain, 'no', !ok);
+      setHTML(fbMain, ok ? ICON_OK + '<span>정답이에요!</span>' : ICON_NO + '<span>아쉬워요!</span>');
+      setHTML(fbSub, ok ? '별 하나를 받았어요.' : '정답은 <b>' + right + '</b>이에요.');
+      var why = !ok && lv >= 3;   // 고치기 2: 틀리면 이유를 한 문장으로
+      cls(fbWhy, 'hide', !why);
+      setHTML(fbWhy, why ? ICON_BULB + '<span>' + reasonOf(a) + '</span>' : '');
+    } else {
+      setHTML(fbMain, ''); setHTML(fbSub, ''); setHTML(fbWhy, ''); cls(fbWhy, 'hide', true);
+    }
+    cls(nextBtn, 'hide', !ans);
+    setHTML(nextLabel, S.q === TOTAL - 1 ? '점수 보기' : '다음 문제');
+  }
+
+  /* ---------------- 직접 해 볼 때 ---------------- */
+  function replay(el, name) { el.classList.remove(name); void el.offsetWidth; el.classList.add(name); }
+  function onAnswer(k) {
+    if (EMBED || !answer(k)) return;
+    draw();
+    replay(fb, 'rise');
+    if (k === kindOf(S.qs[S.q])) replay(starEls[S.stars - 1], 'pop');
+    else choiceBtns.forEach(function (b) { if (b.getAttribute('data-k') === k) replay(b, 'shake'); });
+  }
+  function onNext() {
+    if (EMBED || !next()) return;
+    draw();
+    replay(S.finished ? $('resCard') : svg, 'enter');
+  }
+  function restart() { S = newState(makeQuestions()); draw(); replay(svg, 'enter'); }
+  choiceBtns.forEach(function (b) { b.addEventListener('click', function () { onAnswer(b.getAttribute('data-k')); }); });
+  nextBtn.addEventListener('click', onNext);
+  againBtn.addEventListener('click', function () { if (!EMBED) restart(); });
+  versionBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      level = +b.getAttribute('data-v');
+      try { history.replaceState(null, '', '?v=' + level); } catch (e) { /* 파일로 열었을 때 무시 */ }
+      restart();
+    });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (EMBED) return;
+    if (e.key === '1' || e.key === '2' || e.key === '3') onAnswer(['예각', '직각', '둔각'][+e.key - 1]);
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (S.finished) restart(); else onNext(); }
+  });
+
+  /* ---------------- 안내 영상용 시연 모드 ----------------
+     영상을 만들 때만 쓰여요. 시간 t(초)에 맞춰 정해진 순서대로 버튼을 눌러 보여 줘요. */
+  if (EMBED) {
+    document.body.classList.add('demo', 'embed');
+    var D = CFG.demo || {};
+    var DEMO_QS = D.qs || [60, 130, 90, 45, 150, 90, 35, 120, 75, 110];
+    var events = (D.events || []).slice().sort(function (x, y) { return x.t - y.t; });
+    var DELAY = 0.2;   // 누르는 모습을 보여 준 뒤 화면이 바뀌어요
+    var clamp = function (v) { return v < 0 ? 0 : v > 1 ? 1 : v; };
+    var dots = new Map();
+    function dotFor(btn) {
+      if (!dots.has(btn)) { var d = document.createElement('span'); d.className = 'tapdot'; d.innerHTML = '<i></i>'; btn.appendChild(d); dots.set(btn, d); }
+      return dots.get(btn);
+    }
+    function targetOf(e) {
+      if (e.a === 'answer') return choiceBtns.filter(function (b) { return b.getAttribute('data-k') === e.k; })[0];
+      if (e.a === 'next' || e.el === 'next') return nextBtn;
+      if (e.el === 'again') return againBtn;
+      return null;
+    }
+    events.forEach(function (e) { var b = targetOf(e); if (b) dotFor(b); });
+    var styled = [];
+    function sty(el, css) { el.style.cssText = css; styled.push(el); }
+
+    window.__render = function (t) {
+      S = newState(DEMO_QS.slice());
+      if (D.start) for (var key in D.start) S[key] = D.start[key];
+      if (D.level) level = D.level;
+      var lastAns = null, lastNext = null;
+      for (var i = 0; i < events.length; i++) {
+        var e = events[i];
+        if (t < e.t + DELAY) break;
+        if (e.a === 'answer') { if (answer(e.k)) lastAns = e; }
+        else if (e.a === 'next') { if (next()) { lastNext = e; if (!S.finished) lastAns = null; } }
+        else if (e.a === 'jump') { S.q = e.q; S.stars = e.stars; S.answered = e.answered || null; S.finished = !!e.finished; lastAns = null; lastNext = e; }
+      }
+      draw();
+      // 지난 프레임의 움직임 지우기
+      styled.forEach(function (el) { el.style.cssText = ''; });
+      styled = [];
+      // 답을 고른 뒤: 피드백, 별, 흔들림
+      if (lastAns && !S.finished) {
+        var dt = t - (lastAns.t + DELAY);
+        var p = clamp(dt / 0.3);
+        sty(fb, 'opacity:' + p.toFixed(3) + ';transform:translateY(' + ((1 - p) * 1.2).toFixed(3) + 'rem)');
+        sty(nextBtn, 'opacity:' + clamp((dt - 0.35) / 0.3).toFixed(3));
+        var ok = lastAns.k === kindOf(S.qs[S.q]);
+        if (ok && dt < 0.6 && S.stars > 0) sty(starEls[S.stars - 1], 'transform:scale(' + (1 + 0.8 * Math.sin(Math.PI * clamp(dt / 0.6))).toFixed(3) + ')');
+        if (!ok && dt < 0.5) {
+          var b = targetOf(lastAns);
+          sty(b, 'transform:translateX(' + (Math.sin(dt * 46) * 1.1 * (1 - dt / 0.5)).toFixed(3) + 'rem)');
+        }
+      }
+      // 다음 문제가 나타날 때
+      if (lastNext) {
+        var q = clamp((t - lastNext.t - DELAY) / 0.35);
+        if (S.finished) sty($('resCard'), 'opacity:' + q.toFixed(3) + ';transform:scale(' + (0.9 + 0.1 * q).toFixed(3) + ')');
+        else sty(svg, 'opacity:' + q.toFixed(3) + ';transform:scale(' + (0.92 + 0.08 * q).toFixed(3) + ')');
+      }
+      // 누르는 손가락 표시
+      dots.forEach(function (d, btn) {
+        var best = null;
+        events.forEach(function (e) { if (targetOf(e) === btn) { var u = t - e.t; if (u > -0.55 && u < 0.6 && (!best || Math.abs(u) < Math.abs(best))) best = u; } });
+        if (best == null) { d.style.opacity = '0'; d.firstChild.style.opacity = '0'; return; }
+        var u = best;
+        var op = u < 0 ? clamp((u + 0.55) / 0.25) : clamp(1 - (u - 0.25) / 0.35);
+        var sc = u < -0.05 ? 1.15 - 0.15 * clamp((u + 0.55) / 0.4) : u < 0.12 ? 0.8 : 1;
+        d.style.opacity = op.toFixed(3);
+        d.style.transform = 'scale(' + sc.toFixed(3) + ')';
+        var rp = u >= 0 && u < 0.5 ? u / 0.5 : -1;
+        d.firstChild.style.opacity = rp >= 0 ? (1 - rp).toFixed(3) : '0';
+        d.firstChild.style.transform = 'scale(' + (rp >= 0 ? 1 + rp * 1.2 : 1).toFixed(3) + ')';
+      });
+    };
+    window.__render(0);
+  } else {
+    draw();
+  }
+})();
+</script>
+</body>
+</html>
